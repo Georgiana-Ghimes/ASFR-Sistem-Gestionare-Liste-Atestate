@@ -1,0 +1,191 @@
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import { pool } from '../db.js';
+import { authenticateToken, requireRole } from '../middleware/auth.js';
+
+const router = express.Router();
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
+
+// Get all lists (SCMLA/admin only)
+router.get('/', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM liste_tiparire ORDER BY created_date DESC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get lists error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user's lists (ISF)
+router.get('/my-lists', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM liste_tiparire WHERE isf_name = $1 ORDER BY created_date DESC',
+      [req.user.isf_name]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get my lists error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create new list (ISF/admin only)
+router.post('/', authenticateToken, requireRole('ROLE_ISF', 'admin'), upload.single('pdf'), async (req, res) => {
+  try {
+    const { numar_lista, data_lista, numar_autorizatii, observatii } = req.body;
+
+    if (!numar_lista || !data_lista || !numar_autorizatii || !req.file) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check uniqueness
+    const existing = await pool.query(
+      'SELECT id FROM liste_tiparire WHERE numar_lista = $1',
+      [numar_lista]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Numărul listei există deja' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO liste_tiparire 
+       (numar_lista, data_lista, isf_name, numar_autorizatii, pdf_url, pdf_filename, 
+        status, observatii, created_by_email) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       RETURNING *`,
+      [
+        numar_lista,
+        data_lista,
+        req.user.isf_name,
+        parseInt(numar_autorizatii),
+        `/uploads/${req.file.filename}`,
+        req.file.originalname,
+        'PRIMITA',
+        observatii || null,
+        req.user.email
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create list error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update list status (SCMLA/admin only)
+router.patch('/:id/status', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['PRIMITA', 'VERIFICATA', 'TRIMISA'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    // Get current list
+    const current = await pool.query('SELECT * FROM liste_tiparire WHERE id = $1', [id]);
+    if (current.rows.length === 0) {
+      return res.status(404).json({ error: 'List not found' });
+    }
+
+    const currentStatus = current.rows[0].status;
+
+    // Validate transitions
+    const validTransitions = {
+      'PRIMITA': 'VERIFICATA',
+      'VERIFICATA': 'TRIMISA'
+    };
+
+    if (validTransitions[currentStatus] !== status) {
+      return res.status(400).json({ error: 'Invalid status transition' });
+    }
+
+    let updateQuery = 'UPDATE liste_tiparire SET status = $1, updated_at = CURRENT_TIMESTAMP';
+    const params = [status];
+
+    if (status === 'VERIFICATA') {
+      updateQuery += ', verificat_at = CURRENT_TIMESTAMP, verificat_by = $2';
+      params.push(req.user.email);
+    } else if (status === 'TRIMISA') {
+      updateQuery += ', trimis_at = CURRENT_TIMESTAMP, trimis_by = $2';
+      params.push(req.user.email);
+    }
+
+    updateQuery += ` WHERE id = $${params.length + 1} RETURNING *`;
+    params.push(id);
+
+    const result = await pool.query(updateQuery, params);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get statistics (SCMLA/admin only)
+router.get('/stats', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+  try {
+    const { month, year, isf } = req.query;
+
+    let query = 'SELECT * FROM liste_tiparire WHERE 1=1';
+    const params = [];
+
+    if (isf) {
+      params.push(isf);
+      query += ` AND isf_name = $${params.length}`;
+    }
+
+    const allLists = await pool.query(query, params);
+
+    // Filter by period for monthly stats
+    let monthlyQuery = query;
+    const monthlyParams = [...params];
+
+    if (month && year) {
+      monthlyParams.push(parseInt(year), parseInt(month));
+      monthlyQuery += ` AND EXTRACT(YEAR FROM data_lista) = $${monthlyParams.length - 1}`;
+      monthlyQuery += ` AND EXTRACT(MONTH FROM data_lista) = $${monthlyParams.length}`;
+    }
+
+    const monthlyLists = await pool.query(monthlyQuery, monthlyParams);
+
+    res.json({
+      all: allLists.rows,
+      monthly: monthlyLists.rows
+    });
+  } catch (error) {
+    console.error('Get stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export default router;
