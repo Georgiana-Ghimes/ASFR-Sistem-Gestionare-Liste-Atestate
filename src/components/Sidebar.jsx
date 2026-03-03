@@ -9,8 +9,14 @@ export default function Sidebar({ user }) {
   
   const isAdmin = user?.role === 'admin';
   const hasAtestateRole = user?.has_atestate_role;
+  const isCecilia = user?.email === 'ceciliamihaila@sigurantaferoviara.ro';
 
-  const navItems = [
+  const navItems = isCecilia ? [
+    // Cecilia vede doar meniurile de Atestate
+    { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
+    { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
+  ] : [
+    // Toți ceilalți văd meniurile normale
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
     { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
