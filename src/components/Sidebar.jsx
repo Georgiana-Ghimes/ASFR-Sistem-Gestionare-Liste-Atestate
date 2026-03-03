@@ -17,7 +17,7 @@ export default function Sidebar({ user }) {
     ...(hasAtestateRole
       ? [
           { label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award },
-          { label: "Creare Atestat", path: "/create-atestat", icon: FileBadge }
+          { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
         ]
       : []),
     ...(isAdmin
