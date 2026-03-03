@@ -13,7 +13,7 @@ export default function Sidebar({ user }) {
   const navItems = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
-    { label: "Creare Listă", path: "/create-list", icon: FilePlus },
+    { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
     ...(hasAtestateRole
       ? [
           { label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award },

@@ -115,7 +115,7 @@ export default function CreateList({ user }) {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Creare Listă Nouă</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Încărcare Liste</h1>
         <p className="text-gray-500 mt-1 text-sm">Completați formularul pentru a adăuga o nouă listă de tipărire autorizații.</p>
       </div>
 
