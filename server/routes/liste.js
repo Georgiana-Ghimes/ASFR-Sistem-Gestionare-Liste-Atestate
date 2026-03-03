@@ -29,8 +29,8 @@ const upload = multer({
   }
 });
 
-// Get all lists (SCMLA/admin only)
-router.get('/', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+// Get all lists (CISF/admin only)
+router.get('/', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM liste_tiparire ORDER BY created_date DESC'
@@ -57,11 +57,11 @@ router.get('/my-lists', authenticateToken, async (req, res) => {
 });
 
 // Create new list (ISF/admin only)
-router.post('/', authenticateToken, requireRole('ROLE_ISF', 'admin'), upload.single('pdf'), async (req, res) => {
+router.post('/', authenticateToken, requireRole('isf', 'admin'), upload.single('pdf'), async (req, res) => {
   try {
-    const { numar_lista, data_lista, numar_autorizatii, observatii } = req.body;
+    const { numar_lista, data_lista, numar_autorizatii, isf_name, observatii } = req.body;
 
-    if (!numar_lista || !data_lista || !numar_autorizatii || !req.file) {
+    if (!numar_lista || !data_lista || !numar_autorizatii || !isf_name || !req.file) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -84,7 +84,7 @@ router.post('/', authenticateToken, requireRole('ROLE_ISF', 'admin'), upload.sin
       [
         numar_lista,
         data_lista,
-        req.user.isf_name,
+        isf_name,
         parseInt(numar_autorizatii),
         `/uploads/${req.file.filename}`,
         req.file.originalname,
@@ -101,8 +101,8 @@ router.post('/', authenticateToken, requireRole('ROLE_ISF', 'admin'), upload.sin
   }
 });
 
-// Update list status (SCMLA/admin only)
-router.patch('/:id/status', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+// Update list status (CISF/admin only)
+router.patch('/:id/status', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -151,8 +151,8 @@ router.patch('/:id/status', authenticateToken, requireRole('ROLE_SCMLA', 'admin'
   }
 });
 
-// Get statistics (SCMLA/admin only)
-router.get('/stats', authenticateToken, requireRole('ROLE_SCMLA', 'admin'), async (req, res) => {
+// Get statistics (CISF/admin only)
+router.get('/stats', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
   try {
     const { month, year, isf } = req.query;
 

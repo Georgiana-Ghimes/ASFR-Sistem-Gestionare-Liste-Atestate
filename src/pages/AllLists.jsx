@@ -48,7 +48,7 @@ export default function AllLists({ user }) {
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
   const handleStatusChange = async (lista, newStatus) => {
-    if (user?.role !== "ROLE_SCMLA" && user?.role !== "admin") return;
+    if (user?.role !== 'cisf' && user?.role !== 'admin') return;
     const validTransitions = { PRIMITA: "VERIFICATA", VERIFICATA: "TRIMISA" };
     if (validTransitions[lista.status] !== newStatus) return;
     if (lista.status === "TRIMISA") return;
@@ -121,7 +121,7 @@ export default function AllLists({ user }) {
 
   const fmtDate = (dt) => dt ? format(new Date(dt), "dd.MM.yyyy HH:mm") : "-";
 
-  if (user?.role !== "ROLE_SCMLA" && user?.role !== "admin") {
+  if (user?.role !== 'cisf' && user?.role !== 'admin') {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">

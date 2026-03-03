@@ -93,9 +93,33 @@ class ApiClient {
     });
   }
 
-  async getStats(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/liste/stats?${query}`);
+  // Users
+  async getIsfCisfList() {
+    return this.request('/users/isf-cisf-list');
+  }
+
+  async getAllUsers() {
+    return this.request('/users');
+  }
+
+  async createUser(userData) {
+    return this.request('/users', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }
+
+  async updateUser(id, userData) {
+    return this.request(`/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(userData)
+    });
+  }
+
+  async deleteUser(id) {
+    return this.request(`/users/${id}`, {
+      method: 'DELETE'
+    });
   }
 }
 

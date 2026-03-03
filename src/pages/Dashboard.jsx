@@ -25,18 +25,18 @@ export default function Dashboard({ user }) {
     load();
   }, []);
 
-  if (user?.role !== "ROLE_SCMLA" && user?.role !== "admin") {
+  if (user?.role !== 'cisf' && user?.role !== 'admin') {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-          <p className="text-red-700 font-medium">Acces neautorizat. Doar ROLE_SCMLA poate accesa dashboard-ul.</p>
+          <p className="text-red-700 font-medium">Acces neautorizat. Doar CISF poate accesa dashboard-ul.</p>
         </div>
       </div>
     );
   }
 
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
-  const years = [...new Set(lists.map((l) => l.data_lista ? String(new Date(l.data_lista).getFullYear()) : null).filter(Boolean))].sort((a, b) => b - a);
+  const years = [...new Set(lists.map((l) => l.data_lista ? String(new Date(l.data_lista).getFullYear()) : null).filter(Boolean))].sort((a, b) => parseInt(b) - parseInt(a));
   if (!years.includes(filterYear)) years.unshift(filterYear);
 
   const nowMonth = parseInt(filterMonth);
@@ -49,8 +49,9 @@ export default function Dashboard({ user }) {
 
   const filteredByPeriod = lists.filter((l) => {
     if (filterISF && l.isf_name !== filterISF) return false;
-    if (l.data_lista) {
-      const d = new Date(l.data_lista);
+    // Filter by trimis_at date instead of data_lista
+    if (l.trimis_at) {
+      const d = new Date(l.trimis_at);
       if (getMonth(d) + 1 !== nowMonth) return false;
       if (getYear(d) !== nowYear) return false;
     } else return false;

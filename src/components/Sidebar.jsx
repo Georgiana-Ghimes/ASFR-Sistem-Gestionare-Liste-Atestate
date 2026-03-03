@@ -7,12 +7,12 @@ export default function Sidebar({ user }) {
   const location = useLocation();
   const { logout } = useAuth();
   
-  const isAdmin = user?.role === "admin";
-  const isISF = user?.role === "ROLE_ISF" && !isAdmin;
-  const isSCMLA = user?.role === "ROLE_SCMLA" || isAdmin;
+  const isAdmin = user?.role === 'admin';
+  const isISF = user?.role === 'isf';
+  const isCISF = user?.role === 'cisf';
 
   const navItems = [
-    ...(isSCMLA
+    ...(isCISF || isAdmin
       ? [{ label: "Dashboard", path: "/dashboard", icon: LayoutDashboard }]
       : []),
     { label: isISF ? "Listele mele" : "Administrare Liste", path: isISF ? "/my-lists" : "/all-lists", icon: List },
@@ -28,25 +28,14 @@ export default function Sidebar({ user }) {
     <aside className="w-64 min-h-screen bg-slate-900 flex flex-col shadow-2xl">
       <div className="px-6 py-8 border-b border-slate-700/60">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center p-1">
+            <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="text-white font-bold text-sm leading-tight">Autorizații</p>
             <p className="text-slate-400 text-xs">Tipărire Liste</p>
           </div>
         </div>
-      </div>
-
-      <div className="px-4 py-6 border-b border-slate-700/60">
-        <p className="text-slate-400 text-xs mb-1">Conectat ca</p>
-        <p className="text-white text-sm font-medium truncate">{user?.email}</p>
-        {user?.isf_name && (
-          <p className="text-blue-400 text-xs mt-0.5 font-medium">{user.isf_name}</p>
-        )}
-        <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs font-semibold bg-slate-700 text-slate-300">
-          {user?.role}
-        </span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
@@ -69,6 +58,17 @@ export default function Sidebar({ user }) {
           );
         })}
       </nav>
+
+      <div className="px-4 py-4 border-t border-slate-700/60">
+        <p className="text-slate-400 text-xs mb-1">Conectat ca</p>
+        <p className="text-white text-sm font-medium truncate">{user?.email}</p>
+        {(user?.isf_name || user?.cisf_name) && (
+          <p className="text-blue-400 text-xs mt-0.5 font-medium">{user.isf_name || user.cisf_name}</p>
+        )}
+        <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs font-semibold bg-slate-700 text-slate-300">
+          {user?.role}
+        </span>
+      </div>
 
       <div className="px-3 pb-6">
         <button

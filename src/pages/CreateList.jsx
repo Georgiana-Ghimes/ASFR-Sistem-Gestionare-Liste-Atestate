@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { Upload, Save, AlertCircle, CheckCircle, FileText } from "lucide-react";
@@ -9,14 +9,37 @@ export default function CreateList({ user }) {
     numar_lista: "",
     data_lista: "",
     numar_autorizatii: "",
+    isf_name: "",
     observatii: "",
   });
   const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isfCisfList, setIsfCisfList] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
 
-  if (!user || (user.role !== "ROLE_ISF" && user.role !== "admin")) {
+  useEffect(() => {
+    loadIsfCisfList();
+  }, []);
+
+  const loadIsfCisfList = async () => {
+    try {
+      const list = await apiClient.getIsfCisfList();
+      setIsfCisfList(list);
+      
+      // Set default value to current user's ISF/CISF if available
+      if (user?.isf_name || user?.cisf_name) {
+        setForm(prev => ({ ...prev, isf_name: user.isf_name || user.cisf_name }));
+      }
+    } catch (error) {
+      console.error('Failed to load ISF/CISF list:', error);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  if (!user || (user.role !== 'isf' && user.role !== 'admin')) {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-center gap-3">
@@ -48,6 +71,7 @@ export default function CreateList({ user }) {
 
     if (!form.numar_lista.trim()) { setError("Numărul listei este obligatoriu."); return; }
     if (!form.data_lista) { setError("Data listei este obligatorie."); return; }
+    if (!form.isf_name) { setError("ISF/CISF este obligatoriu."); return; }
     if (!form.numar_autorizatii || parseInt(form.numar_autorizatii) < 1) {
       setError("Numărul de autorizații trebuie să fie cel puțin 1."); return;
     }
@@ -59,6 +83,7 @@ export default function CreateList({ user }) {
       const formData = new FormData();
       formData.append('numar_lista', form.numar_lista.trim());
       formData.append('data_lista', form.data_lista);
+      formData.append('isf_name', form.isf_name);
       formData.append('numar_autorizatii', form.numar_autorizatii);
       formData.append('observatii', form.observatii || '');
       formData.append('pdf', pdfFile);
@@ -143,13 +168,26 @@ export default function CreateList({ user }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">ISF</label>
-            <input
-              type="text"
-              value={user?.isf_name || ""}
-              disabled
-              className="w-full px-4 py-2.5 border border-gray-100 rounded-xl text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-            />
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              ISF / CISF <span className="text-red-500">*</span>
+            </label>
+            {loadingList ? (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-gray-500">Se încarcă...</span>
+              </div>
+            ) : (
+              <select
+                value={form.isf_name}
+                onChange={(e) => setForm({ ...form, isf_name: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              >
+                <option value="">Selectează ISF/CISF</option>
+                {isfCisfList.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 

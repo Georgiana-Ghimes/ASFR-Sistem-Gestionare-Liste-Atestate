@@ -22,8 +22,9 @@ async function setupDatabase() {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL,
+        role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'isf', 'cisf')),
         isf_name VARCHAR(255),
+        cisf_name VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -62,23 +63,23 @@ async function setupDatabase() {
     const hashedPassword = await bcrypt.hash('password123', 10);
     
     await client.query(`
-      INSERT INTO users (email, password, role, isf_name) 
+      INSERT INTO users (email, password, role, isf_name, cisf_name) 
       VALUES 
-        ($1, $2, 'admin', NULL),
-        ($3, $4, 'ROLE_SCMLA', NULL),
-        ($5, $6, 'ROLE_ISF', 'ISF Bucuresti'),
-        ($7, $8, 'ROLE_ISF', 'ISF Cluj')
+        ($1, $2, 'admin', NULL, NULL),
+        ($3, $4, 'cisf', NULL, 'CISF Bucuresti'),
+        ($5, $6, 'isf', 'ISF Bucuresti', NULL),
+        ($7, $8, 'isf', 'ISF Cluj', NULL)
       ON CONFLICT (email) DO NOTHING
     `, [
       'admin@test.com', hashedPassword,
-      'scmla@test.com', hashedPassword,
+      'cisf@test.com', hashedPassword,
       'isf.bucuresti@test.com', hashedPassword,
       'isf.cluj@test.com', hashedPassword
     ]);
     console.log('✅ Demo users created');
     console.log('\n📋 Demo credentials:');
     console.log('   Admin: admin@test.com / password123');
-    console.log('   SCMLA: scmla@test.com / password123');
+    console.log('   CISF: cisf@test.com / password123');
     console.log('   ISF București: isf.bucuresti@test.com / password123');
     console.log('   ISF Cluj: isf.cluj@test.com / password123\n');
 
