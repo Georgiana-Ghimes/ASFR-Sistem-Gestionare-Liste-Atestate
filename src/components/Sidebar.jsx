@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award } from "lucide-react";
+import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge } from "lucide-react";
 
 export default function Sidebar({ user }) {
   const location = useLocation();
@@ -15,7 +15,10 @@ export default function Sidebar({ user }) {
     { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
     { label: "Creare Listă", path: "/create-list", icon: FilePlus },
     ...(hasAtestateRole
-      ? [{ label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award }]
+      ? [
+          { label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award },
+          { label: "Creare Atestat", path: "/create-atestat", icon: FileBadge }
+        ]
       : []),
     ...(isAdmin
       ? [{ label: "Setări", path: "/settings", icon: Settings }]

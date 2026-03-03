@@ -9,6 +9,7 @@ import CreateList from './pages/CreateList';
 import Settings from './pages/Settings';
 import MyAtestate from './pages/MyAtestate';
 import AllAtestate from './pages/AllAtestate';
+import CreateAtestat from './pages/CreateAtestat';
 import Sidebar from './components/Sidebar';
 
 const ProtectedRoute = ({ children }) => {
@@ -45,6 +46,7 @@ const AppLayout = () => {
           <Route path="/settings" element={<Settings user={user} />} />
           <Route path="/my-atestate" element={<MyAtestate user={user} />} />
           <Route path="/all-atestate" element={<AllAtestate user={user} />} />
+          <Route path="/create-atestat" element={<CreateAtestat user={user} />} />
         </Routes>
       </main>
     </div>

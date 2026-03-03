@@ -130,6 +130,29 @@ class ApiClient {
       method: 'DELETE'
     });
   }
+
+  // Atestate
+  async getAllAtestate() {
+    return this.request('/atestate');
+  }
+
+  async getMyAtestate() {
+    return this.request('/atestate/my-atestate');
+  }
+
+  async createAtestat(formData) {
+    return this.request('/atestate', {
+      method: 'POST',
+      body: formData,
+      isFormData: true
+    });
+  }
+
+  async deleteAtestat(id) {
+    return this.request(`/atestate/${id}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
