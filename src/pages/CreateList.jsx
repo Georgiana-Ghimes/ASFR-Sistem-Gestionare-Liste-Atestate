@@ -28,23 +28,23 @@ export default function CreateList({ user }) {
       const list = await apiClient.getIsfCisfList();
       setIsfCisfList(list);
       
-      // Set default value to current user's ISF/CISF if available
-      if (user?.isf_name || user?.cisf_name) {
-        setForm(prev => ({ ...prev, isf_name: user.isf_name || user.cisf_name }));
+      // Set default value to current user's ISF/CISF/SCSC if available
+      if (user?.isf_name || user?.cisf_name || user?.scsc_name) {
+        setForm(prev => ({ ...prev, isf_name: user.isf_name || user.cisf_name || user.scsc_name }));
       }
     } catch (error) {
-      console.error('Failed to load ISF/CISF list:', error);
+      console.error('Failed to load ISF/CISF/SCSC list:', error);
     } finally {
       setLoadingList(false);
     }
   };
 
-  if (!user || !['isf', 'cisf', 'admin'].includes(user.role)) {
+  if (!user || !['isf', 'cisf', 'scsc', 'admin'].includes(user.role)) {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700 font-medium">Acces neautorizat. Doar utilizatorii ISF și CISF pot crea liste.</p>
+          <p className="text-red-700 font-medium">Acces neautorizat. Doar utilizatorii ISF, CISF și SCSC pot crea liste.</p>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ export default function CreateList({ user }) {
 
     if (!form.numar_lista.trim()) { setError("Numărul listei este obligatoriu."); return; }
     if (!form.data_lista) { setError("Data listei este obligatorie."); return; }
-    if (!form.isf_name) { setError("ISF/CISF este obligatoriu."); return; }
+    if (!form.isf_name) { setError("ISF/CISF/SCSC este obligatoriu."); return; }
     if (!form.numar_autorizatii || parseInt(form.numar_autorizatii) < 1) {
       setError("Numărul de autorizații trebuie să fie cel puțin 1."); return;
     }
@@ -169,7 +169,7 @@ export default function CreateList({ user }) {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              ISF / CISF <span className="text-red-500">*</span>
+              ISF / CISF / SCSC <span className="text-red-500">*</span>
             </label>
             {loadingList ? (
               <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
@@ -182,7 +182,7 @@ export default function CreateList({ user }) {
                 onChange={(e) => setForm({ ...form, isf_name: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
-                {user?.role === 'admin' && <option value="">Selectează ISF/CISF</option>}
+                {user?.role === 'admin' && <option value="">Selectează ISF/CISF/SCSC</option>}
                 {isfCisfList.map((name) => (
                   <option key={name} value={name}>{name}</option>
                 ))}
