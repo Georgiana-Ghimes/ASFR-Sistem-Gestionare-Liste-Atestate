@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
       cb(null, true);
@@ -76,9 +76,9 @@ router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, r
 // Create new atestat
 router.post('/', authenticateToken, requireAtestateRole, upload.single('pdf'), async (req, res) => {
   try {
-    const { numar_atestat, data_atestat, nume_complet, cnp, functie, observatii } = req.body;
+    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, observatii } = req.body;
 
-    if (!numar_atestat || !data_atestat || !nume_complet || !cnp || !functie || !req.file) {
+    if (!numar_atestat || !data_atestat || !nume_complet || !din_cadrul || !functie || !req.file) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -94,7 +94,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.single('pdf'), a
 
     const result = await pool.query(
       `INSERT INTO atestate 
-       (numar_atestat, data_atestat, nume_complet, cnp, functie, pdf_url, pdf_filename, 
+       (numar_atestat, data_atestat, nume_complet, din_cadrul, functie, pdf_url, pdf_filename, 
         observatii, created_by_email) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
@@ -102,7 +102,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.single('pdf'), a
         numar_atestat,
         data_atestat,
         nume_complet,
-        cnp,
+        din_cadrul,
         functie,
         `/uploads/${req.file.filename}`,
         req.file.originalname,

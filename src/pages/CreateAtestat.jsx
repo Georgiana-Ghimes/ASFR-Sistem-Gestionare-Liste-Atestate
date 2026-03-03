@@ -9,7 +9,7 @@ export default function CreateAtestat({ user }) {
     numar_atestat: "",
     data_atestat: "",
     nume_complet: "",
-    cnp: "",
+    din_cadrul: "",
     functie: "",
     observatii: "",
   });
@@ -36,8 +36,8 @@ export default function CreateAtestat({ user }) {
       setError("Sunt acceptate doar fișiere PDF.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Dimensiunea fișierului nu poate depăși 10MB.");
+    if (file.size > 50 * 1024 * 1024) {
+      setError("Dimensiunea fișierului nu poate depăși 50MB.");
       return;
     }
     setPdfFile(file);
@@ -48,12 +48,11 @@ export default function CreateAtestat({ user }) {
     e.preventDefault();
     setError("");
 
-    if (!form.numar_atestat.trim()) { setError("Numărul atestatului este obligatoriu."); return; }
-    if (!form.data_atestat) { setError("Data atestatului este obligatorie."); return; }
+    if (!form.numar_atestat.trim()) { setError("Seria este obligatorie."); return; }
+    if (!form.data_atestat) { setError("Data atestatului / Procesului Verbal este obligatorie."); return; }
     if (!form.nume_complet.trim()) { setError("Numele complet este obligatoriu."); return; }
-    if (!form.cnp.trim()) { setError("CNP-ul este obligatoriu."); return; }
-    if (form.cnp.length !== 13) { setError("CNP-ul trebuie să aibă 13 caractere."); return; }
-    if (!form.functie.trim()) { setError("Funcția este obligatorie."); return; }
+    if (!form.din_cadrul.trim()) { setError("Câmpul 'Din cadrul' este obligatoriu."); return; }
+    if (!form.functie.trim()) { setError("Specialitatea este obligatorie."); return; }
     if (!pdfFile) { setError("Fișierul PDF este obligatoriu."); return; }
 
     setUploading(true);
@@ -63,7 +62,7 @@ export default function CreateAtestat({ user }) {
       formData.append('numar_atestat', form.numar_atestat.trim());
       formData.append('data_atestat', form.data_atestat);
       formData.append('nume_complet', form.nume_complet.trim());
-      formData.append('cnp', form.cnp.trim());
+      formData.append('din_cadrul', form.din_cadrul.trim());
       formData.append('functie', form.functie.trim());
       formData.append('observatii', form.observatii || '');
       formData.append('pdf', pdfFile);
@@ -110,20 +109,20 @@ export default function CreateAtestat({ user }) {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Număr Atestat <span className="text-red-500">*</span>
+              Seria <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.numar_atestat}
               onChange={(e) => setForm({ ...form, numar_atestat: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: AT-2024-001"
+              placeholder="ex: ISF4/42 Nr. 29"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Data Atestat <span className="text-red-500">*</span>
+              Data Atestat / Proces Verbal <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -148,28 +147,27 @@ export default function CreateAtestat({ user }) {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              CNP <span className="text-red-500">*</span>
+              Din cadrul <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              maxLength={13}
-              value={form.cnp}
-              onChange={(e) => setForm({ ...form, cnp: e.target.value.replace(/\D/g, '') })}
+              value={form.din_cadrul}
+              onChange={(e) => setForm({ ...form, din_cadrul: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: 1234567890123"
+              placeholder="ex: VIA TERRA SPEDITION SRL"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Funcție <span className="text-red-500">*</span>
+              Specialitate <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.functie}
               onChange={(e) => setForm({ ...form, functie: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: Mecanic"
+              placeholder="ex: Tracțiune"
             />
           </div>
         </div>
@@ -196,8 +194,8 @@ export default function CreateAtestat({ user }) {
             ) : (
               <div>
                 <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 font-medium">Click pentru a selecta fișierul PDF</p>
-                <p className="text-xs text-gray-400 mt-1">Maxim 10MB, doar fișiere .pdf</p>
+                <p className="text-sm text-gray-600 font-medium">Click pentru a selecta fișiere (exemplarele 1, 2, 3)</p>
+                <p className="text-xs text-gray-400 mt-1">Maxim 50MB</p>
               </div>
             )}
           </div>
