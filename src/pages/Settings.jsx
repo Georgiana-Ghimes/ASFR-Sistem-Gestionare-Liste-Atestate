@@ -172,39 +172,24 @@ export default function Settings({ user }) {
                 <option value="admin">Administrator</option>
               </select>
             </div>
-            {newUser.role === 'isf' && (
+            {(newUser.role === 'isf' || newUser.role === 'cisf' || newUser.role === 'scsc') && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nume ISF *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nume ISF/CISF/SCSC *</label>
                 <input
                   type="text"
-                  value={newUser.isf_name}
-                  onChange={(e) => setNewUser({ ...newUser, isf_name: e.target.value })}
+                  value={newUser.role === 'isf' ? newUser.isf_name : newUser.role === 'cisf' ? newUser.cisf_name : newUser.scsc_name}
+                  onChange={(e) => {
+                    if (newUser.role === 'isf') {
+                      setNewUser({ ...newUser, isf_name: e.target.value, cisf_name: '', scsc_name: '' });
+                    } else if (newUser.role === 'cisf') {
+                      setNewUser({ ...newUser, cisf_name: e.target.value, isf_name: '', scsc_name: '' });
+                    } else if (newUser.role === 'scsc') {
+                      setNewUser({ ...newUser, scsc_name: e.target.value, isf_name: '', cisf_name: '' });
+                    }
+                  }}
                   required
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
-            {newUser.role === 'cisf' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nume CISF *</label>
-                <input
-                  type="text"
-                  value={newUser.cisf_name}
-                  onChange={(e) => setNewUser({ ...newUser, cisf_name: e.target.value })}
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
-            {newUser.role === 'scsc' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nume SCSC *</label>
-                <input
-                  type="text"
-                  value={newUser.scsc_name}
-                  onChange={(e) => setNewUser({ ...newUser, scsc_name: e.target.value })}
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={`ex: ${newUser.role === 'isf' ? 'ISF București' : newUser.role === 'cisf' ? 'CISF București' : 'SCSC București'}`}
                 />
               </div>
             )}
