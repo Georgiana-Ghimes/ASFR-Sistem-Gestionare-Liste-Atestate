@@ -13,7 +13,7 @@ export default function CreateAtestat({ user }) {
     functie: "",
     observatii: "",
   });
-  const [pdfFiles, setPdfFiles] = useState([null, null, null]); // 3 files
+  const [pdfFiles, setPdfFiles] = useState([]); // Multiple files
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -29,20 +29,33 @@ export default function CreateAtestat({ user }) {
     );
   }
 
-  const handleFileChange = (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      setError("Sunt acceptate doar fișiere PDF.");
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 3) {
+      setError("Puteți încărca maxim 3 fișiere.");
       return;
     }
-    if (file.size > 50 * 1024 * 1024) {
-      setError("Dimensiunea fișierului nu poate depăși 50MB.");
-      return;
+    
+    for (const file of files) {
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      if (!validTypes.includes(file.type)) {
+        setError("Sunt acceptate doar fișiere PDF sau Word (.doc, .docx).");
+        return;
+      }
+      
+      if (file.size > 50 * 1024 * 1024) {
+        setError("Dimensiunea fiecărui fișier nu poate depăși 50MB.");
+        return;
+      }
     }
-    const newFiles = [...pdfFiles];
-    newFiles[index] = file;
-    setPdfFiles(newFiles);
+    
+    setPdfFiles(files);
     setError("");
   };
 
@@ -55,8 +68,8 @@ export default function CreateAtestat({ user }) {
     if (!form.nume_complet.trim()) { setError("Numele complet este obligatoriu."); return; }
     if (!form.din_cadrul.trim()) { setError("Câmpul 'Din cadrul' este obligatoriu."); return; }
     if (!form.functie.trim()) { setError("Specialitatea este obligatorie."); return; }
-    if (!pdfFiles[0] && !pdfFiles[1] && !pdfFiles[2]) { 
-      setError("Trebuie să încărcați cel puțin un fișier PDF."); 
+    if (pdfFiles.length === 0) { 
+      setError("Trebuie să încărcați cel puțin un fișier."); 
       return; 
     }
 
@@ -185,36 +198,38 @@ export default function CreateAtestat({ user }) {
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Fișiere PDF <span className="text-red-500">*</span>
+            Fișiere <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-gray-500 mb-3">Încărcați exemplarele 1, 2, 3 (cel puțin unul obligatoriu)</p>
+          <p className="text-xs text-gray-500 mb-3">Încărcați exemplarele 1, 2, 3 (maxim 3 fișiere, PDF sau Word)</p>
           
-          <div className="space-y-3">
-            {[0, 1, 2].map((index) => (
-              <div key={index} className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-pink-300 transition-colors cursor-pointer relative">
-                <input
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={(e) => handleFileChange(e, index)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                {pdfFiles[index] ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <FileText className="w-6 h-6 text-pink-500" />
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-pink-300 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              multiple
+              onChange={handleFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {pdfFiles.length > 0 ? (
+              <div className="space-y-2">
+                {pdfFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <FileText className="w-6 h-6 text-pink-500 flex-shrink-0" />
                     <div className="text-left flex-1">
-                      <p className="text-sm font-semibold text-gray-800">{pdfFiles[index].name}</p>
-                      <p className="text-xs text-gray-500">{(pdfFiles[index].size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-sm font-semibold text-gray-800">{file.name}</p>
+                      <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="py-2">
-                    <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1" />
-                    <p className="text-sm text-gray-600 font-medium">Exemplarul {index + 1}</p>
-                    <p className="text-xs text-gray-400 mt-1">Click pentru a selecta fișier (Maxim 50MB)</p>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
+            ) : (
+              <div>
+                <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 font-medium">Click pentru a selecta fișiere (exemplarele 1, 2, 3)</p>
+                <p className="text-xs text-gray-400 mt-1">Maxim 3 fișiere, 50MB per fișier</p>
+                <p className="text-xs text-gray-400">Format: PDF sau Word (.doc, .docx)</p>
+              </div>
+            )}
           </div>
         </div>
 
