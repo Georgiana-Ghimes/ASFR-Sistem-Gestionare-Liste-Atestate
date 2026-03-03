@@ -32,11 +32,6 @@ export default function CreateAtestat({ user }) {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     
-    if (files.length > 3) {
-      setError("Puteți încărca maxim 3 fișiere.");
-      return;
-    }
-    
     for (const file of files) {
       const validTypes = [
         'application/pdf',
@@ -84,11 +79,9 @@ export default function CreateAtestat({ user }) {
       formData.append('functie', form.functie.trim());
       formData.append('observatii', form.observatii || '');
       
-      // Append all PDF files
-      pdfFiles.forEach((file, index) => {
-        if (file) {
-          formData.append(`pdf${index + 1}`, file);
-        }
+      // Append all files
+      pdfFiles.forEach((file) => {
+        formData.append('files', file);
       });
 
       await apiClient.createAtestat(formData);
@@ -200,7 +193,7 @@ export default function CreateAtestat({ user }) {
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Fișiere <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-gray-500 mb-3">Încărcați exemplarele 1, 2, 3 (maxim 3 fișiere, PDF sau Word)</p>
+          <p className="text-xs text-gray-500 mb-3">Încărcați exemplarele (PDF sau Word)</p>
           
           <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-pink-300 transition-colors cursor-pointer relative">
             <input
@@ -226,8 +219,7 @@ export default function CreateAtestat({ user }) {
               <div>
                 <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-600 font-medium">Click pentru a selecta fișiere (exemplarele 1, 2, 3)</p>
-                <p className="text-xs text-gray-400 mt-1">Maxim 3 fișiere, 50MB per fișier</p>
-                <p className="text-xs text-gray-400">Format: PDF sau Word (.doc, .docx)</p>
+                <p className="text-xs text-gray-400 mt-1">Format: PDF sau Word (.doc, .docx)</p>
               </div>
             )}
           </div>
