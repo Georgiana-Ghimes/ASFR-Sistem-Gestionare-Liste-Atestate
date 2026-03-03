@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
-import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, CheckCircle, Send } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, CheckCircle, Send, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 const COLUMNS = [
@@ -29,6 +29,7 @@ export default function AllLists({ user }) {
   const [sortDir, setSortDir] = useState("desc");
   const [pdfModal, setPdfModal] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     load();
@@ -61,6 +62,23 @@ export default function AllLists({ user }) {
       console.error('Failed to update status:', error);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleDelete = async (lista) => {
+    if (user?.role !== 'admin') return;
+    
+    if (!confirm(`Sigur doriți să ștergeți lista ${lista.numar_lista}?`)) return;
+    
+    setDeletingId(lista.id);
+    try {
+      await apiClient.deleteList(lista.id);
+      await load();
+    } catch (error) {
+      console.error('Failed to delete list:', error);
+      alert('Eroare la ștergerea listei');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -121,7 +139,7 @@ export default function AllLists({ user }) {
 
   const fmtDate = (dt) => dt ? format(new Date(dt), "dd.MM.yyyy HH:mm") : "-";
 
-  if (user?.role !== 'cisf' && user?.role !== 'admin') {
+  if (user?.role !== 'cisf' && user?.role !== 'admin' && user?.role !== 'isf') {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
@@ -288,6 +306,20 @@ export default function AllLists({ user }) {
                                 <Send className="w-3 h-3" />
                               )}
                               TRIMISĂ
+                            </button>
+                          )}
+                          {user?.role === 'admin' && (
+                            <button
+                              onClick={() => handleDelete(l)}
+                              disabled={deletingId === l.id}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                              title="Șterge listă"
+                            >
+                              {deletingId === l.id ? (
+                                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
                             </button>
                           )}
                         </div>

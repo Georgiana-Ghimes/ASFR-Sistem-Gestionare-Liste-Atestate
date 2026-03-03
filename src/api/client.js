@@ -1,3 +1,4 @@
+// @ts-nocheck
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
@@ -27,12 +28,14 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${API_URL}${endpoint}`;
+    const isFormData = options.isFormData || false;
+    
     const config = {
       ...options,
-      headers: this.getHeaders(options.isFormData)
+      headers: this.getHeaders(isFormData)
     };
 
-    if (options.isFormData) {
+    if (config.isFormData) {
       delete config.isFormData;
     }
 
@@ -90,6 +93,12 @@ class ApiClient {
     return this.request(`/liste/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
+    });
+  }
+
+  async deleteList(id) {
+    return this.request(`/liste/${id}`, {
+      method: 'DELETE'
     });
   }
 

@@ -8,17 +8,11 @@ export default function Sidebar({ user }) {
   const { logout } = useAuth();
   
   const isAdmin = user?.role === 'admin';
-  const isISF = user?.role === 'isf';
-  const isCISF = user?.role === 'cisf';
 
   const navItems = [
-    ...(isCISF || isAdmin
-      ? [{ label: "Dashboard", path: "/dashboard", icon: LayoutDashboard }]
-      : []),
-    { label: isISF ? "Listele mele" : "Administrare Liste", path: isISF ? "/my-lists" : "/all-lists", icon: List },
-    ...(isISF || isAdmin
-      ? [{ label: "Creare Listă", path: "/create-list", icon: FilePlus }]
-      : []),
+    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
+    { label: "Creare Listă", path: "/create-list", icon: FilePlus },
     ...(isAdmin
       ? [{ label: "Setări", path: "/settings", icon: Settings }]
       : []),

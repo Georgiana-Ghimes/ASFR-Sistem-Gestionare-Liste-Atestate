@@ -25,15 +25,7 @@ export default function Dashboard({ user }) {
     load();
   }, []);
 
-  if (user?.role !== 'cisf' && user?.role !== 'admin') {
-    return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-          <p className="text-red-700 font-medium">Acces neautorizat. Doar CISF poate accesa dashboard-ul.</p>
-        </div>
-      </div>
-    );
-  }
+  // No restrictions - all authenticated users can see dashboard
 
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
   const years = [...new Set(lists.map((l) => l.data_lista ? String(new Date(l.data_lista).getFullYear()) : null).filter(Boolean))].sort((a, b) => parseInt(b) - parseInt(a));

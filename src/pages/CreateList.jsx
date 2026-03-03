@@ -39,12 +39,12 @@ export default function CreateList({ user }) {
     }
   };
 
-  if (!user || (user.role !== 'isf' && user.role !== 'admin')) {
+  if (!user || !['isf', 'cisf', 'admin'].includes(user.role)) {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700 font-medium">Acces neautorizat. Doar utilizatorii ISF pot crea liste.</p>
+          <p className="text-red-700 font-medium">Acces neautorizat. Doar utilizatorii ISF și CISF pot crea liste.</p>
         </div>
       </div>
     );
@@ -182,7 +182,7 @@ export default function CreateList({ user }) {
                 onChange={(e) => setForm({ ...form, isf_name: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
-                <option value="">Selectează ISF/CISF</option>
+                {user?.role === 'admin' && <option value="">Selectează ISF/CISF</option>}
                 {isfCisfList.map((name) => (
                   <option key={name} value={name}>{name}</option>
                 ))}

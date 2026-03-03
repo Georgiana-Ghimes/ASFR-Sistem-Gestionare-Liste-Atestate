@@ -29,12 +29,24 @@ const upload = multer({
   }
 });
 
-// Get all lists (CISF/admin only)
-router.get('/', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
+// Get all lists (ISF/CISF/admin)
+router.get('/', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM liste_tiparire ORDER BY created_date DESC'
-    );
+    let query = 'SELECT * FROM liste_tiparire';
+    const params = [];
+    
+    // Non-admin users can only see their own ISF/CISF lists
+    if (req.user.role !== 'admin') {
+      const userIsfCisfScsc = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      if (userIsfCisfScsc) {
+        query += ' WHERE isf_name = $1';
+        params.push(userIsfCisfScsc);
+      }
+    }
+    
+    query += ' ORDER BY created_date DESC';
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Get lists error:', error);
@@ -45,9 +57,15 @@ router.get('/', authenticateToken, requireRole('cisf', 'admin'), async (req, res
 // Get user's lists (ISF)
 router.get('/my-lists', authenticateToken, async (req, res) => {
   try {
+    const userIsfCisfScsc = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+    
+    if (!userIsfCisfScsc) {
+      return res.json([]);
+    }
+    
     const result = await pool.query(
       'SELECT * FROM liste_tiparire WHERE isf_name = $1 ORDER BY created_date DESC',
-      [req.user.isf_name]
+      [userIsfCisfScsc]
     );
     res.json(result.rows);
   } catch (error) {
@@ -56,8 +74,8 @@ router.get('/my-lists', authenticateToken, async (req, res) => {
   }
 });
 
-// Create new list (ISF/admin only)
-router.post('/', authenticateToken, requireRole('isf', 'admin'), upload.single('pdf'), async (req, res) => {
+// Create new list (ISF/CISF/SCSC/admin)
+router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'), upload.single('pdf'), async (req, res) => {
   try {
     const { numar_lista, data_lista, numar_autorizatii, isf_name, observatii } = req.body;
 
@@ -151,17 +169,25 @@ router.patch('/:id/status', authenticateToken, requireRole('cisf', 'admin'), asy
   }
 });
 
-// Get statistics (CISF/admin only)
-router.get('/stats', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
+// Get statistics (ISF/CISF/admin)
+router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const { month, year, isf } = req.query;
 
     let query = 'SELECT * FROM liste_tiparire WHERE 1=1';
     const params = [];
+    let paramCount = 1;
 
-    if (isf) {
+    // Non-admin users can only see their own ISF/CISF stats
+    if (req.user.role !== 'admin') {
+      const userIsfCisfScsc = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      if (userIsfCisfScsc) {
+        query += ` AND isf_name = $${paramCount++}`;
+        params.push(userIsfCisfScsc);
+      }
+    } else if (isf) {
+      query += ` AND isf_name = $${paramCount++}`;
       params.push(isf);
-      query += ` AND isf_name = $${params.length}`;
     }
 
     const allLists = await pool.query(query, params);
@@ -172,8 +198,8 @@ router.get('/stats', authenticateToken, requireRole('cisf', 'admin'), async (req
 
     if (month && year) {
       monthlyParams.push(parseInt(year), parseInt(month));
-      monthlyQuery += ` AND EXTRACT(YEAR FROM data_lista) = $${monthlyParams.length - 1}`;
-      monthlyQuery += ` AND EXTRACT(MONTH FROM data_lista) = $${monthlyParams.length}`;
+      monthlyQuery += ` AND EXTRACT(YEAR FROM data_lista) = $${paramCount++}`;
+      monthlyQuery += ` AND EXTRACT(MONTH FROM data_lista) = $${paramCount}`;
     }
 
     const monthlyLists = await pool.query(monthlyQuery, monthlyParams);
@@ -184,6 +210,24 @@ router.get('/stats', authenticateToken, requireRole('cisf', 'admin'), async (req
     });
   } catch (error) {
     console.error('Get stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete list (admin only)
+router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query('DELETE FROM liste_tiparire WHERE id = $1 RETURNING id', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'List not found' });
+    }
+
+    res.json({ message: 'List deleted successfully' });
+  } catch (error) {
+    console.error('Delete list error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

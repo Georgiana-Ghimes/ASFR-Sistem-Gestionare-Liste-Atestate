@@ -15,7 +15,8 @@ export default function Settings({ user }) {
     password: '',
     role: 'isf',
     isf_name: '',
-    cisf_name: ''
+    cisf_name: '',
+    scsc_name: ''
   });
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function Settings({ user }) {
     try {
       await apiClient.createUser(newUser);
       showNotification('success', 'Utilizator adăugat cu succes!');
-      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '' });
+      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '', scsc_name: '' });
       setShowAddForm(false);
       loadUsers();
     } catch (error) {
@@ -60,7 +61,8 @@ export default function Settings({ user }) {
         email: editingUser.email,
         role: editingUser.role,
         isf_name: editingUser.isf_name,
-        cisf_name: editingUser.cisf_name
+        cisf_name: editingUser.cisf_name,
+        scsc_name: editingUser.scsc_name
       };
       if (editingUser.password) {
         updateData.password = editingUser.password;
@@ -99,13 +101,15 @@ export default function Settings({ user }) {
   const roleColors = {
     admin: 'bg-purple-100 text-purple-800',
     cisf: 'bg-blue-100 text-blue-800',
-    isf: 'bg-amber-100 text-amber-800'
+    isf: 'bg-amber-100 text-amber-800',
+    scsc: 'bg-green-100 text-green-800'
   };
 
   const roleLabels = {
     admin: 'Administrator',
     cisf: 'CISF',
-    isf: 'ISF'
+    isf: 'ISF',
+    scsc: 'SCSC'
   };
 
   return (
@@ -164,6 +168,7 @@ export default function Settings({ user }) {
               >
                 <option value="isf">ISF</option>
                 <option value="cisf">CISF</option>
+                <option value="scsc">SCSC</option>
                 <option value="admin">Administrator</option>
               </select>
             </div>
@@ -186,6 +191,18 @@ export default function Settings({ user }) {
                   type="text"
                   value={newUser.cisf_name}
                   onChange={(e) => setNewUser({ ...newUser, cisf_name: e.target.value })}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
+            {newUser.role === 'scsc' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nume SCSC *</label>
+                <input
+                  type="text"
+                  value={newUser.scsc_name}
+                  onChange={(e) => setNewUser({ ...newUser, scsc_name: e.target.value })}
                   required
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -240,7 +257,7 @@ export default function Settings({ user }) {
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rol</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Creat La</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
                 </tr>
@@ -271,6 +288,7 @@ export default function Settings({ user }) {
                           >
                             <option value="isf">ISF</option>
                             <option value="cisf">CISF</option>
+                            <option value="scsc">SCSC</option>
                             <option value="admin">Administrator</option>
                           </select>
                         ) : (
@@ -294,8 +312,15 @@ export default function Settings({ user }) {
                             onChange={(e) => setEditingUser({ ...editingUser, cisf_name: e.target.value })}
                             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm w-full"
                           />
+                        ) : isEditing && editingUser.role === 'scsc' ? (
+                          <input
+                            type="text"
+                            value={editingUser.scsc_name || ''}
+                            onChange={(e) => setEditingUser({ ...editingUser, scsc_name: e.target.value })}
+                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm w-full"
+                          />
                         ) : (
-                          <span className="text-sm text-gray-600">{u.isf_name || u.cisf_name || '-'}</span>
+                          <span className="text-sm text-gray-600">{u.isf_name || u.cisf_name || u.scsc_name || '-'}</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-400">
@@ -322,7 +347,7 @@ export default function Settings({ user }) {
                         ) : (
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '' })}
+                              onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '' })}
                               className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
                               title="Editează"
                             >

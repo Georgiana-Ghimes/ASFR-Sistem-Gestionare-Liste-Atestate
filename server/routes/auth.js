@@ -35,7 +35,9 @@ router.post('/login', async (req, res) => {
         id: user.id, 
         email: user.email, 
         role: user.role,
-        isf_name: user.isf_name 
+        isf_name: user.isf_name,
+        cisf_name: user.cisf_name,
+        scsc_name: user.scsc_name
       },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
@@ -47,7 +49,9 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        isf_name: user.isf_name
+        isf_name: user.isf_name,
+        cisf_name: user.cisf_name,
+        scsc_name: user.scsc_name
       }
     });
   } catch (error) {
@@ -59,7 +63,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, role, isf_name FROM users WHERE id = $1',
+      'SELECT id, email, role, isf_name, cisf_name, scsc_name FROM users WHERE id = $1',
       [req.user.id]
     );
 
