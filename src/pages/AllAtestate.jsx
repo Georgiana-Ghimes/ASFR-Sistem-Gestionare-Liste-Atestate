@@ -89,16 +89,18 @@ export default function AllAtestate({ user }) {
             >
               Lista Atestate
             </button>
-            <button
-              onClick={() => setActiveTab("baza")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "baza"
-                  ? "border-pink-500 text-pink-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Baza de Evidență
-            </button>
+            {user.email === 'ceciliamihaila@sigurantaferoviara.ro' && (
+              <button
+                onClick={() => setActiveTab("baza")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "baza"
+                    ? "border-pink-500 text-pink-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Baza de Evidență
+              </button>
+            )}
           </nav>
         </div>
       </div>
