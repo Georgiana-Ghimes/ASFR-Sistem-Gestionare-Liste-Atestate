@@ -10,26 +10,44 @@ export default function Sidebar({ user }) {
   const isAdmin = user?.role === 'admin';
   const hasAtestateRole = user?.has_atestate_role;
   const isCecilia = user?.email === 'ceciliamihaila@sigurantaferoviara.ro';
+  const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
 
-  const navItems = isCecilia ? [
-    // Cecilia vede doar meniurile de Atestate
-    { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
-    { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
-  ] : [
-    // Toți ceilalți văd meniurile normale
-    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
-    { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
-    ...(hasAtestateRole
-      ? [
-          { label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award },
-          { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
-        ]
-      : []),
-    ...(isAdmin
-      ? [{ label: "Setări", path: "/settings", icon: Settings }]
-      : []),
-  ];
+  let navItems = [];
+
+  if (isCecilia) {
+    // Cecilia vede DOAR meniurile de Atestate
+    navItems = [
+      { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
+      { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
+    ];
+  } else if (isAdmin) {
+    // Administratorii (în afară de Cecilia) văd TOT
+    navItems = [
+      { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Administrare Liste", path: "/all-lists", icon: List },
+      { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
+      ...(hasAtestateRole
+        ? [
+            { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
+            { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
+          ]
+        : []),
+      { label: "Setări", path: "/settings", icon: Settings }
+    ];
+  } else if (isRegularUser) {
+    // Utilizatorii ISF/CISF/SCSC văd doar zonele lor
+    navItems = [
+      { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Listele mele", path: "/my-lists", icon: List },
+      { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
+      ...(hasAtestateRole
+        ? [
+            { label: "Atestatele mele", path: "/my-atestate", icon: Award },
+            { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
+          ]
+        : [])
+    ];
+  }
 
   return (
     <aside className="w-64 min-h-screen bg-slate-900 flex flex-col shadow-2xl">
