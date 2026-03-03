@@ -16,7 +16,8 @@ export default function Settings({ user }) {
     role: 'isf',
     isf_name: '',
     cisf_name: '',
-    scsc_name: ''
+    scsc_name: '',
+    has_atestate_role: false
   });
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function Settings({ user }) {
     try {
       await apiClient.createUser(newUser);
       showNotification('success', 'Utilizator adăugat cu succes!');
-      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '', scsc_name: '' });
+      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '', scsc_name: '', has_atestate_role: false });
       setShowAddForm(false);
       loadUsers();
     } catch (error) {
@@ -62,7 +63,8 @@ export default function Settings({ user }) {
         role: editingUser.role,
         isf_name: editingUser.isf_name,
         cisf_name: editingUser.cisf_name,
-        scsc_name: editingUser.scsc_name
+        scsc_name: editingUser.scsc_name,
+        has_atestate_role: editingUser.has_atestate_role
       };
       if (editingUser.password) {
         updateData.password = editingUser.password;
@@ -193,6 +195,17 @@ export default function Settings({ user }) {
                 />
               </div>
             )}
+            <div className="md:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newUser.has_atestate_role}
+                  onChange={(e) => setNewUser({ ...newUser, has_atestate_role: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-semibold text-gray-700">Are și rol de Atestate</span>
+              </label>
+            </div>
             <div className="md:col-span-2 flex justify-end gap-3">
               <button
                 type="button"
@@ -243,6 +256,7 @@ export default function Settings({ user }) {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rol</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Atestate</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Creat La</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
                 </tr>
@@ -308,6 +322,24 @@ export default function Settings({ user }) {
                           <span className="text-sm text-gray-600">{u.isf_name || u.cisf_name || u.scsc_name || '-'}</span>
                         )}
                       </td>
+                      <td className="px-6 py-4">
+                        {isEditing ? (
+                          <input
+                            type="checkbox"
+                            checked={editingUser.has_atestate_role || false}
+                            onChange={(e) => setEditingUser({ ...editingUser, has_atestate_role: e.target.checked })}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        ) : (
+                          <span className="text-sm">
+                            {u.has_atestate_role ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-pink-100 text-pink-800">Da</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-400">
                         {new Date(u.created_at).toLocaleDateString('ro-RO')}
                       </td>
@@ -332,7 +364,7 @@ export default function Settings({ user }) {
                         ) : (
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '' })}
+                              onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false })}
                               className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
                               title="Editează"
                             >

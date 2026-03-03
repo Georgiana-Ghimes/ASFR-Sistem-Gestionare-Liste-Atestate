@@ -7,6 +7,8 @@ import MyLists from './pages/MyLists';
 import AllLists from './pages/AllLists';
 import CreateList from './pages/CreateList';
 import Settings from './pages/Settings';
+import MyAtestate from './pages/MyAtestate';
+import AllAtestate from './pages/AllAtestate';
 import Sidebar from './components/Sidebar';
 
 const ProtectedRoute = ({ children }) => {
@@ -41,6 +43,8 @@ const AppLayout = () => {
           <Route path="/all-lists" element={<AllLists user={user} />} />
           <Route path="/create-list" element={<CreateList user={user} />} />
           <Route path="/settings" element={<Settings user={user} />} />
+          <Route path="/my-atestate" element={<MyAtestate user={user} />} />
+          <Route path="/all-atestate" element={<AllAtestate user={user} />} />
         </Routes>
       </main>
     </div>

@@ -26,6 +26,7 @@ async function setupDatabase() {
         isf_name VARCHAR(255),
         cisf_name VARCHAR(255),
         scsc_name VARCHAR(255),
+        has_atestate_role BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);

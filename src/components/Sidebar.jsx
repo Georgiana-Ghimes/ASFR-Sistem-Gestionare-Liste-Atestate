@@ -1,18 +1,22 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award } from "lucide-react";
 
 export default function Sidebar({ user }) {
   const location = useLocation();
   const { logout } = useAuth();
   
   const isAdmin = user?.role === 'admin';
+  const hasAtestateRole = user?.has_atestate_role;
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: isAdmin ? "Administrare Liste" : "Listele mele", path: isAdmin ? "/all-lists" : "/my-lists", icon: List },
     { label: "Creare Listă", path: "/create-list", icon: FilePlus },
+    ...(hasAtestateRole
+      ? [{ label: isAdmin ? "Administrare Atestate" : "Atestatele mele", path: isAdmin ? "/all-atestate" : "/my-atestate", icon: Award }]
+      : []),
     ...(isAdmin
       ? [{ label: "Setări", path: "/settings", icon: Settings }]
       : []),
