@@ -412,7 +412,7 @@ export default function AllAtestate({ user }) {
                       <td className="px-3 py-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
-                            onClick={() => handleDownload(atestat.id, atestat.numar_atestat)}
+                            onClick={() => handleDownload(atestat.id, atestat.numar_atestat_format)}
                             disabled={downloading === atestat.id}
                             className="p-1.5 bg-pink-50 text-pink-600 rounded-lg hover:bg-pink-100 disabled:opacity-50 transition-colors"
                             title="Descarcă fișiere (ZIP)"

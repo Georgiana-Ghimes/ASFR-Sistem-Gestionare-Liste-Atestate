@@ -307,8 +307,8 @@ router.get('/:id/download', authenticateToken, requireAtestateRole, async (req, 
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Use organization name as ZIP filename (sanitize for filesystem)
-    const sanitizedName = (atestat.organization_name || 'atestat').replace(/[^a-zA-Z0-9_-]/g, '_');
+    // Use numar_atestat_format as ZIP filename (sanitize for filesystem)
+    const sanitizedName = (atestat.numar_atestat_format || 'atestat').replace(/[^a-zA-Z0-9_-]/g, '_');
     
     // Create ZIP archive
     const archive = archiver('zip', { zlib: { level: 9 } });
