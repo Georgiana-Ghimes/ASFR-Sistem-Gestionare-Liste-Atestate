@@ -49,4 +49,7 @@ server/uploads/*
 Thumbs.db
 .DS_Store
 
+# Testing
+Testing/
+
 .env
