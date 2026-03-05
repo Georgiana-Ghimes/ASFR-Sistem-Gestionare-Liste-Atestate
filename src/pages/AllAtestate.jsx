@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Award, AlertCircle, Download, Loader2, Trash2 } from "lucide-react";
+import { Award, AlertCircle, Download, Loader2, Trash2, Search, Filter } from "lucide-react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "@/components/StatusBadge";
 import { format } from "date-fns";
@@ -10,6 +10,11 @@ export default function AllAtestate({ user }) {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterOrg, setFilterOrg] = useState("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [search, setSearch] = useState("");
 
   const isGeorgiana = user?.email === 'georgiana.ghimes@sigurantaferoviara.ro';
   const isCecilia = user?.email === 'cecilia.mihaila@sigurantaferoviara.ro';
@@ -95,7 +100,7 @@ export default function AllAtestate({ user }) {
       "Specialitate", "Status", "Urcat La", "Verificat La", "Trimis La", 
       "Urcat De", "Verificat De", "Trimis De"
     ];
-    const rows = atestate.map((a) => [
+    const rows = filtered.map((a) => [
       a.organization_name || "",
       a.numar_atestat || "",
       a.data_atestat ? format(new Date(a.data_atestat), "dd.MM.yyyy") : "",
@@ -119,6 +124,18 @@ export default function AllAtestate({ user }) {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const allOrgs = [...new Set(atestate.map((a) => a.organization_name).filter(Boolean))].sort();
+
+  const filtered = atestate
+    .filter((a) => {
+      if (filterStatus !== "ALL" && a.status !== filterStatus) return false;
+      if (filterOrg && a.organization_name !== filterOrg) return false;
+      if (filterFrom && a.data_atestat < filterFrom) return false;
+      if (filterTo && a.data_atestat > filterTo) return false;
+      if (search && !a.numar_atestat.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
 
   const fmtDate = (dt) => dt ? format(new Date(dt), "dd.MM.yyyy HH:mm") : "-";
 
@@ -184,6 +201,59 @@ export default function AllAtestate({ user }) {
         </div>
       </div>
 
+      {/* Filters */}
+      {activeTab === "lista" && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Filtre</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Seria..."
+                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <select
+              value={filterOrg}
+              onChange={(e) => setFilterOrg(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+            >
+              <option value="">Toate ISF-urile</option>
+              {allOrgs.map((org) => (
+                <option key={org} value={org}>{org}</option>
+              ))}
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+            >
+              <option value="ALL">Toate statusurile</option>
+              <option value="PRIMITA">PRIMITĂ</option>
+              <option value="VERIFICATA">VERIFICATĂ</option>
+              <option value="TRIMISA">TRIMISĂ</option>
+            </select>
+            <input
+              type="date"
+              value={filterFrom}
+              onChange={(e) => setFilterFrom(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+            />
+            <input
+              type="date"
+              value={filterTo}
+              onChange={(e) => setFilterTo(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Tab Content */}
       {activeTab === "lista" ? (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -216,7 +286,14 @@ export default function AllAtestate({ user }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {atestate.map((atestat) => (
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="px-6 py-16 text-center text-gray-400 text-sm">
+                        Nu există atestate care să corespundă filtrelor selectate.
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((atestat) => (
                     <tr key={atestat.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-3 py-3 text-xs text-gray-900">{atestat.organization_name || '-'}</td>
                       <td className="px-3 py-3 text-xs text-gray-900">{atestat.numar_atestat}</td>
@@ -299,7 +376,8 @@ export default function AllAtestate({ user }) {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>

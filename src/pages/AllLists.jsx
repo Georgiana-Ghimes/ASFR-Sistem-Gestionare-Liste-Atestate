@@ -6,8 +6,8 @@ import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, CheckCircle, Sen
 import { format } from "date-fns";
 
 const COLUMNS = [
+  { label: "ISF / CISF / SCSC", col: "isf_name" },
   { label: "Nr. Listă", col: "numar_lista" },
-  { label: "ISF", col: "isf_name" },
   { label: "Data", col: "data_lista" },
   { label: "Nr. Aut.", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
@@ -259,8 +259,8 @@ export default function AllLists({ user }) {
                 ) : (
                   filtered.map((l) => (
                     <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600">{l.isf_name}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
                         {l.data_lista ? format(new Date(l.data_lista), "dd.MM.yyyy") : "-"}
                       </td>
