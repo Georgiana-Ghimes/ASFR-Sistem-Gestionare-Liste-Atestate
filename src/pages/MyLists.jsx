@@ -72,7 +72,7 @@ export default function MyLists({ user }) {
       if (filterStatus !== "ALL" && l.status !== filterStatus) return false;
       if (filterFrom && l.created_date < filterFrom) return false;
       if (filterTo && l.created_date > filterTo) return false;
-      if (search && !l.numar_lista.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !l.numar_lista.toLowerCase().startsWith(search.toLowerCase())) return false;
       return true;
     })
     .sort((a, b) => {

@@ -158,7 +158,7 @@ export default function AllAtestate({ user }) {
       if (filterOrg && a.organization_name !== filterOrg) return false;
       if (filterFrom && a.created_date < filterFrom) return false;
       if (filterTo && a.created_date > filterTo) return false;
-      if (search && !a.numar_atestat_format?.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !a.numar_atestat_format?.toLowerCase().startsWith(search.toLowerCase())) return false;
       return true;
     });
 
