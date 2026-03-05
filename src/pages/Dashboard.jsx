@@ -276,10 +276,11 @@ export default function Dashboard({ user }) {
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
-          }
+          },
+          font: R === 0 ? { bold: true } : undefined
         };
       }
     });
@@ -384,10 +385,11 @@ export default function Dashboard({ user }) {
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
-          }
+          },
+          font: R === 0 ? { bold: true } : undefined
         };
       }
     });
@@ -495,10 +497,11 @@ export default function Dashboard({ user }) {
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
-            }
+            },
+            font: R === 0 ? { bold: true } : undefined
           };
         }
       });
@@ -589,10 +592,11 @@ export default function Dashboard({ user }) {
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
-            }
+            },
+            font: R === 0 ? { bold: true } : undefined
           };
         }
       });
@@ -691,10 +695,11 @@ export default function Dashboard({ user }) {
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
-            }
+            },
+            font: R === 0 ? { bold: true } : undefined
           };
         }
       });
@@ -777,10 +782,11 @@ export default function Dashboard({ user }) {
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
-            }
+            },
+            font: R === 0 ? { bold: true } : undefined
           };
         }
       });
