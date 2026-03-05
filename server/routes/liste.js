@@ -271,7 +271,7 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
 });
 
 // Serve PDF with custom filename
-router.get('/:id/pdf', async (req, res) => {
+router.get('/:id/pdf/:filename', async (req, res) => {
   try {
     const { id } = req.params;
     const token = req.query.token;
@@ -312,7 +312,7 @@ router.get('/:id/pdf', async (req, res) => {
     // Construct file path
     const filePath = path.join(process.cwd(), lista.pdf_url.replace(/^\//, ''));
     
-    // Set headers for inline display with custom filename
+    // Set headers for inline display
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${lista.numar_lista}.pdf"`);
     

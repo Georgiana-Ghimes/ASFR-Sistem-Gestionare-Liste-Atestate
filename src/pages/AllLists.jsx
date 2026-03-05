@@ -76,7 +76,7 @@ export default function AllLists({ user }) {
 
   const handleDownloadPDF = (listId, numarLista) => {
     const token = localStorage.getItem('token');
-    const url = `${window.location.origin.replace(':5173', ':3001')}/api/liste/${listId}/pdf?token=${token}`;
+    const url = `${window.location.origin.replace(':5173', ':3001')}/api/liste/${listId}/pdf/${numarLista}.pdf?token=${token}`;
     window.open(url, '_blank');
   };
 
