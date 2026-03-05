@@ -4,13 +4,16 @@ import { apiClient } from "@/api/client";
 import StatusBadge from "@/components/StatusBadge";
 import PDFViewerModal from "@/components/PDFViewerModal";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 export default function MyAtestate({ user }) {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("lista");
   const [atestate, setAtestate] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(null);
   const [pdfModal, setPdfModal] = useState(null);
+  const [highlightId, setHighlightId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +34,29 @@ export default function MyAtestate({ user }) {
     
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    // Handle highlight from navigation state
+    if (location.state?.highlightId) {
+      setHighlightId(location.state.highlightId);
+      
+      // Scroll to the row after a short delay
+      setTimeout(() => {
+        const row = document.getElementById(`atestat-row-${location.state.highlightId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      // Remove highlight after animation (2 pulses × 1s each)
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 2000);
+      
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleDownload = async (id, numarAtestat) => {
     try {
@@ -194,10 +220,17 @@ export default function MyAtestate({ user }) {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {atestate.map((a) => (
-                    <tr key={a.id} className={`transition-colors ${
-                      a.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
-                      'hover:bg-gray-50/50'
-                    }`}>
+                    <tr 
+                      key={a.id} 
+                      id={`atestat-row-${a.id}`}
+                      className={`transition-colors ${
+                        highlightId === a.id 
+                          ? 'animate-pulse-green' 
+                          : a.status === 'TRIMISA' 
+                            ? 'bg-green-50 hover:bg-green-100' 
+                            : 'hover:bg-gray-50/50'
+                      }`}
+                    >
                       <td className="px-3 py-2 text-xs text-gray-900 text-center">{a.numar_atestat}</td>
                       <td className="px-3 py-2 text-xs text-gray-900 text-center font-bold">{a.numar_atestat_format || '-'}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap text-center">

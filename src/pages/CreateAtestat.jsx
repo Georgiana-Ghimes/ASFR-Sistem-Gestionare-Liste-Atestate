@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Save, AlertCircle, CheckCircle, FileText } from "lucide-react";
+import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight } from "lucide-react";
 
 export default function CreateAtestat({ user }) {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export default function CreateAtestat({ user }) {
   });
   const [organizations, setOrganizations] = useState([]);
   const [pdfFiles, setPdfFiles] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -114,7 +114,7 @@ export default function CreateAtestat({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(null);
 
     if (!form.organization_type || !form.organization_name) { setError("ISF / CISF / SCSC este obligatoriu."); return; }
     if (!form.numar_atestat.trim()) { setError("Seria este obligatorie."); return; }
@@ -162,7 +162,12 @@ export default function CreateAtestat({ user }) {
       setSuccess(true);
       setTimeout(() => navigate('/my-atestate'), 2000);
     } catch (err) {
-      setError(err.message || 'Eroare la crearea atestatului');
+      // Check if error has existingId (duplicate entry)
+      if (err.existingId) {
+        setError({ message: err.message, existingId: err.existingId });
+      } else {
+        setError(err.message || 'Eroare la crearea atestatului');
+      }
     } finally {
       setUploading(false);
     }
@@ -193,7 +198,22 @@ export default function CreateAtestat({ user }) {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-red-700 text-sm">{error}</p>
+            <div className="flex-1">
+              <p className="text-red-700 text-sm">
+                {typeof error === 'object' ? error.message : error}
+              </p>
+              {typeof error === 'object' && error.existingId && (
+                <button
+                  onClick={() => {
+                    const targetPage = user?.role === 'admin' ? '/all-atestate' : '/my-atestate';
+                    navigate(targetPage, { state: { highlightId: error.existingId } });
+                  }}
+                  className="mt-2 inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-semibold underline"
+                >
+                  (vezi atestatul <ArrowRight className="w-3 h-3" />)
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -239,7 +259,7 @@ export default function CreateAtestat({ user }) {
                 value={form.numar_atestat}
                 onChange={(e) => setForm({ ...form, numar_atestat: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                placeholder="ex: ISF4/42 Nr. 29"
+                placeholder="ex: ISF4/42"
               />
             </div>
 

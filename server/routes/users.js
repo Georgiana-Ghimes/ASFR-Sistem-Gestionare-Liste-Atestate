@@ -31,7 +31,7 @@ router.get('/isf-cisf-list', authenticateToken, async (req, res) => {
     res.json(result.rows.map(r => r.name));
   } catch (error) {
     console.error('Get ISF/CISF list error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -44,7 +44,7 @@ router.get('/', authenticateToken, requireRole('admin'), async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get users error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -54,29 +54,29 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
     const { email, password, role, isf_name, cisf_name, scsc_name, has_atestate_role } = req.body;
 
     if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password and role are required' });
+      return res.status(400).json({ error: 'Email, parolă și rol sunt obligatorii' });
     }
 
     if (!['admin', 'isf', 'cisf', 'scsc'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' });
+      return res.status(400).json({ error: 'Rol invalid' });
     }
 
     if (role === 'isf' && !isf_name) {
-      return res.status(400).json({ error: 'ISF name is required for ISF role' });
+      return res.status(400).json({ error: 'Numele ISF este obligatoriu pentru rolul ISF' });
     }
 
     if (role === 'cisf' && !cisf_name) {
-      return res.status(400).json({ error: 'CISF name is required for CISF role' });
+      return res.status(400).json({ error: 'Numele CISF este obligatoriu pentru rolul CISF' });
     }
 
     if (role === 'scsc' && !scsc_name) {
-      return res.status(400).json({ error: 'SCSC name is required for SCSC role' });
+      return res.status(400).json({ error: 'Numele SCSC este obligatoriu pentru rolul SCSC' });
     }
 
     // Check if user exists
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'Utilizatorul există deja' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -107,7 +107,7 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -121,16 +121,16 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
     const userToUpdate = await pool.query('SELECT email, role FROM users WHERE id = $1', [id]);
     
     if (userToUpdate.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
     // Only georgiana.ghimes can edit admin users
     if (userToUpdate.rows[0].role === 'admin' && req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
-      return res.status(403).json({ error: 'Only the supreme administrator can edit admin users' });
+      return res.status(403).json({ error: 'Doar administratorul suprem poate edita utilizatori admin' });
     }
 
     if (role && !['admin', 'isf', 'cisf', 'scsc'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' });
+      return res.status(400).json({ error: 'Rol invalid' });
     }
 
     const updates = [];
@@ -180,7 +180,7 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      return res.status(400).json({ error: 'Niciun câmp de actualizat' });
     }
 
     values.push(id);
@@ -189,7 +189,7 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
     // Audit log
@@ -205,7 +205,7 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -216,19 +216,19 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
 
     // Prevent deleting yourself
     if (parseInt(id) === req.user.id) {
-      return res.status(400).json({ error: 'Cannot delete your own account' });
+      return res.status(400).json({ error: 'Nu poți șterge propriul cont' });
     }
 
     // Get the user to be deleted
     const userToDelete = await pool.query('SELECT email, role FROM users WHERE id = $1', [id]);
     
     if (userToDelete.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
     // Only georgiana.ghimes can delete admin users
     if (userToDelete.rows[0].role === 'admin' && req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
-      return res.status(403).json({ error: 'Only the supreme administrator can delete admin users' });
+      return res.status(403).json({ error: 'Doar administratorul suprem poate șterge utilizatori admin' });
     }
 
     const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, email', [id]);
@@ -243,10 +243,10 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
       req.ip
     );
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'Utilizator șters cu succes' });
   } catch (error) {
     console.error('Delete user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 

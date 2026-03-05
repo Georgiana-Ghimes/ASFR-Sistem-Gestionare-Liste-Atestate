@@ -4,6 +4,7 @@ import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
 import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 const COLUMNS = [
   { label: "", col: null }, // Empty column for NOU badge
@@ -19,6 +20,7 @@ const COLUMNS = [
 ];
 
 export default function AllLists({ user }) {
+  const location = useLocation();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -30,10 +32,34 @@ export default function AllLists({ user }) {
   const [sortDir, setSortDir] = useState("desc");
   const [pdfModal, setPdfModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [highlightId, setHighlightId] = useState(null);
 
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    // Handle highlight from navigation state
+    if (location.state?.highlightId) {
+      setHighlightId(location.state.highlightId);
+      
+      // Scroll to the row after a short delay
+      setTimeout(() => {
+        const row = document.getElementById(`list-row-${location.state.highlightId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      // Remove highlight after animation (2 pulses × 1s each)
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 2000);
+      
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const load = async () => {
     try {
@@ -276,11 +302,19 @@ export default function AllLists({ user }) {
                   </tr>
                 ) : (
                   filtered.map((l) => (
-                    <tr key={l.id} className={`transition-colors ${
-                      l.status === 'PRIMITA' ? 'bg-yellow-50 hover:bg-yellow-100' : 
-                      l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
-                      'hover:bg-gray-50/50'
-                    }`}>
+                    <tr 
+                      key={l.id} 
+                      id={`list-row-${l.id}`}
+                      className={`transition-colors ${
+                        highlightId === l.id 
+                          ? 'animate-pulse-green' 
+                          : l.status === 'PRIMITA' 
+                            ? 'bg-yellow-50 hover:bg-yellow-100' 
+                            : l.status === 'TRIMISA' 
+                              ? 'bg-green-50 hover:bg-green-100' 
+                              : 'hover:bg-gray-50/50'
+                      }`}
+                    >
                       <td className="px-3 py-2 text-center">
                         {l.status === 'PRIMITA' && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-yellow-700 bg-yellow-200 border border-yellow-300">

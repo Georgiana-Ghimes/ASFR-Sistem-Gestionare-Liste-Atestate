@@ -4,8 +4,10 @@ import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
 import { Search, ChevronUp, ChevronDown, Filter, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 export default function MyLists({ user }) {
+  const location = useLocation();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -15,6 +17,7 @@ export default function MyLists({ user }) {
   const [sortCol, setSortCol] = useState("created_date");
   const [sortDir, setSortDir] = useState("desc");
   const [pdfModal, setPdfModal] = useState(null);
+  const [highlightId, setHighlightId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -35,6 +38,29 @@ export default function MyLists({ user }) {
     
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    // Handle highlight from navigation state
+    if (location.state?.highlightId) {
+      setHighlightId(location.state.highlightId);
+      
+      // Scroll to the row after a short delay
+      setTimeout(() => {
+        const row = document.getElementById(`list-row-${location.state.highlightId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      // Remove highlight after animation (2 pulses × 1s each)
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 2000);
+      
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSort = (col) => {
     if (sortCol === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -163,10 +189,17 @@ export default function MyLists({ user }) {
                   </tr>
                 ) : (
                   filtered.map((l) => (
-                    <tr key={l.id} className={`transition-colors ${
-                      l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
-                      'hover:bg-gray-50/50'
-                    }`}>
+                    <tr 
+                      key={l.id} 
+                      id={`list-row-${l.id}`}
+                      className={`transition-colors ${
+                        highlightId === l.id 
+                          ? 'animate-pulse-green' 
+                          : l.status === 'TRIMISA' 
+                            ? 'bg-green-50 hover:bg-green-100' 
+                            : 'hover:bg-gray-50/50'
+                      }`}
+                    >
                       <td className="px-3 py-2 text-xs font-bold text-gray-900 text-center">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.tip || "-"}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>

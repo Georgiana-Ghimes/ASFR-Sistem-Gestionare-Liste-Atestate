@@ -61,7 +61,7 @@ router.get('/', authenticateToken, requireRole('admin'), async (req, res) => {
     });
   } catch (error) {
     console.error('Get audit logs error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -72,7 +72,7 @@ router.delete('/all', authenticateToken, requireRole('admin'), async (req, res) 
     res.json({ message: 'All audit logs deleted', count: result.rows.length });
   } catch (error) {
     console.error('Delete all audit logs error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -94,7 +94,7 @@ router.delete('/', authenticateToken, requireRole('admin'), async (req, res) => 
     res.json({ message: 'Selected audit logs deleted', count: result.rows.length });
   } catch (error) {
     console.error('Delete selected audit logs error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 

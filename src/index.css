@@ -15,3 +15,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@keyframes pulse-green {
+  0%, 100% {
+    background-color: rgb(134 239 172);
+  }
+  50% {
+    background-color: rgb(187 247 208);
+  }
+}
+
+.animate-pulse-green {
+  animation: pulse-green 1s ease-in-out 2;
+}

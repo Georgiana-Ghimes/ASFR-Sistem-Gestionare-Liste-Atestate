@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Save, AlertCircle, CheckCircle, FileText } from "lucide-react";
+import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight } from "lucide-react";
 
 export default function CreateList({ user }) {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function CreateList({ user }) {
     isf_name: "",
   });
   const [pdfFile, setPdfFile] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [organizations, setOrganizations] = useState([]);
@@ -98,7 +98,7 @@ export default function CreateList({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(null);
 
     if (!form.numar_lista.trim()) { setError("Numărul comisiei este obligatoriu."); return; }
     if (!form.isf_name) { setError("ISF/CISF/SCSC este obligatoriu."); return; }
@@ -121,7 +121,12 @@ export default function CreateList({ user }) {
       setSuccess(true);
       setTimeout(() => navigate('/my-lists'), 2000);
     } catch (err) {
-      setError(err.message || 'Eroare la crearea listei');
+      // Check if error has existingId (duplicate entry)
+      if (err.existingId) {
+        setError({ message: err.message, existingId: err.existingId });
+      } else {
+        setError(err.message || 'Eroare la crearea listei');
+      }
     } finally {
       setUploading(false);
     }
@@ -152,7 +157,22 @@ export default function CreateList({ user }) {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-red-700 text-sm">{error}</p>
+            <div className="flex-1">
+              <p className="text-red-700 text-sm">
+                {typeof error === 'object' ? error.message : error}
+              </p>
+              {typeof error === 'object' && error.existingId && (
+                <button
+                  onClick={() => {
+                    const targetPage = user?.role === 'admin' ? '/all-lists' : '/my-lists';
+                    navigate(targetPage, { state: { highlightId: error.existingId } });
+                  }}
+                  className="mt-2 inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-semibold underline"
+                >
+                  (vezi lista <ArrowRight className="w-3 h-3" />)
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -193,8 +213,8 @@ export default function CreateList({ user }) {
             <input
               type="text"
               value={form.numar_lista}
-              onChange={(e) => setForm({ ...form, numar_lista: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              onChange={(e) => setForm({ ...form, numar_lista: e.target.value.toUpperCase() })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition uppercase"
               placeholder="ex: C99725"
             />
           </div>

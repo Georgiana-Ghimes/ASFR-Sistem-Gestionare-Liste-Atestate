@@ -44,7 +44,12 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Request failed');
+        const error = new Error(data.error || 'Request failed');
+        // Attach existingId if present in response
+        if (data.existingId) {
+          error.existingId = data.existingId;
+        }
+        throw error;
       }
 
       return data;

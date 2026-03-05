@@ -3,8 +3,10 @@ import { Award, AlertCircle, Download, Loader2, Trash2, Search, Filter } from "l
 import { apiClient } from "@/api/client";
 import StatusBadge from "@/components/StatusBadge";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 export default function AllAtestate({ user }) {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("lista");
   const [atestate, setAtestate] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,7 @@ export default function AllAtestate({ user }) {
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [search, setSearch] = useState("");
+  const [highlightId, setHighlightId] = useState(null);
 
   const isGeorgiana = user?.email === 'georgiana.ghimes@sigurantaferoviara.ro';
 
@@ -23,6 +26,29 @@ export default function AllAtestate({ user }) {
       loadAtestate();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    // Handle highlight from navigation state
+    if (location.state?.highlightId) {
+      setHighlightId(location.state.highlightId);
+      
+      // Scroll to the row after a short delay
+      setTimeout(() => {
+        const row = document.getElementById(`atestat-row-${location.state.highlightId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      // Remove highlight after animation (2 pulses × 1s each)
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 2000);
+      
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const loadAtestate = async () => {
     try {
@@ -310,11 +336,19 @@ export default function AllAtestate({ user }) {
                     </tr>
                   ) : (
                     filtered.map((atestat) => (
-                    <tr key={atestat.id} className={`transition-colors ${
-                      atestat.status === 'PRIMITA' ? 'bg-yellow-50 hover:bg-yellow-100' : 
-                      atestat.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
-                      'hover:bg-gray-50/50'
-                    }`}>
+                    <tr 
+                      key={atestat.id} 
+                      id={`atestat-row-${atestat.id}`}
+                      className={`transition-colors ${
+                        highlightId === atestat.id 
+                          ? 'animate-pulse-green' 
+                          : atestat.status === 'PRIMITA' 
+                            ? 'bg-yellow-50 hover:bg-yellow-100' 
+                            : atestat.status === 'TRIMISA' 
+                              ? 'bg-green-50 hover:bg-green-100' 
+                              : 'hover:bg-gray-50/50'
+                      }`}
+                    >
                       <td className="px-3 py-3 text-center">
                         {atestat.status === 'PRIMITA' && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-yellow-700 bg-yellow-200 border border-yellow-300">

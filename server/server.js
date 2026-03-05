@@ -40,7 +40,7 @@ app.get('/api/health', (req, res) => {
 // Error handling
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({ error: err.message || 'Internal server error' });
+  res.status(500).json({ error: err.message || 'Eroare interna de server' });
 });
 
 app.listen(PORT, () => {

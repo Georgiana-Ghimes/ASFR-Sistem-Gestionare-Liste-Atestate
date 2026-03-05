@@ -46,7 +46,7 @@ const upload = multer({
 // Middleware to check if user has atestate role
 const requireAtestateRole = (req, res, next) => {
   if (!req.user.has_atestate_role && req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied. Atestate role required.' });
+    return res.status(403).json({ error: 'Acces interzis. Este necesar rol de atestate.' });
   }
   next();
 };
@@ -69,7 +69,7 @@ router.get('/', authenticateToken, requireAtestateRole, async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get atestate error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -83,7 +83,7 @@ router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, r
     res.json(result.rows);
   } catch (error) {
     console.error('Get my atestate error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -93,7 +93,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
     const { numar_atestat, numar_atestat_format, data_atestat, nume_complet, din_cadrul, functie, organization_type, organization_name } = req.body;
 
     if (!numar_atestat || !numar_atestat_format || !data_atestat || !nume_complet || !din_cadrul || !functie || !organization_type || !organization_name) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Câmpuri obligatorii lipsă' });
     }
 
     // Validate format: number/year
@@ -104,18 +104,21 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 
     // Check if at least one file is uploaded
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'At least one file is required' });
+      return res.status(400).json({ error: 'Este necesar cel puțin un fișier' });
     }
 
     // Check uniqueness by numar_atestat_format
     const existing = await pool.query(
-      'SELECT id, created_date FROM atestate WHERE numar_atestat_format = $1',
+      'SELECT id, created_date, numar_atestat_format FROM atestate WHERE numar_atestat_format = $1',
       [numar_atestat_format.trim()]
     );
 
     if (existing.rows.length > 0) {
       const existingDate = new Date(existing.rows[0].created_date).toLocaleDateString('ro-RO');
-      return res.status(400).json({ error: `Atestatul a fost deja încărcat în data de ${existingDate}` });
+      return res.status(400).json({ 
+        error: `Atestatul cu nr. ${existing.rows[0].numar_atestat_format} a fost deja încărcat în data de ${existingDate}`,
+        existingId: existing.rows[0].id
+      });
     }
 
     // Get file paths (up to 3 files for backward compatibility)
@@ -175,7 +178,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
     console.error('Create atestat error:', error);
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
-    res.status(500).json({ error: 'Internal server error', message: error.message });
+    res.status(500).json({ error: 'Eroare interna de server', message: error.message });
   }
 });
 
@@ -183,7 +186,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied. Admin role required.' });
+      return res.status(403).json({ error: 'Acces interzis. Este necesar rol de admin.' });
     }
 
     const { id } = req.params;
@@ -191,7 +194,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const result = await pool.query('DELETE FROM atestate WHERE id = $1 RETURNING id, numar_atestat', [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Atestat not found' });
+      return res.status(404).json({ error: 'Atestat negasit' });
     }
 
     // Audit log
@@ -207,7 +210,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Atestat deleted successfully' });
   } catch (error) {
     console.error('Delete atestat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -216,14 +219,14 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
   try {
     // Only admins can change status
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied. Admin role required.' });
+      return res.status(403).json({ error: 'Acces interzis. Este necesar rol de admin.' });
     }
 
     const { id } = req.params;
     const { status } = req.body;
 
     if (!['PRIMITA', 'VERIFICATA', 'TRIMISA'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+      return res.status(400).json({ error: 'Status invalid' });
     }
 
     let updateQuery = 'UPDATE atestate SET status = $1, updated_at = NOW()';
@@ -247,7 +250,7 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     const result = await pool.query(updateQuery, params);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Atestat not found' });
+      return res.status(404).json({ error: 'Atestat negasit' });
     }
 
     // Audit log
@@ -263,7 +266,7 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update atestat status error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -276,7 +279,7 @@ router.get('/:id/download', authenticateToken, requireAtestateRole, async (req, 
     const result = await pool.query('SELECT * FROM atestate WHERE id = $1', [id]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Atestat not found' });
+      return res.status(404).json({ error: 'Atestat negasit' });
     }
     
     const atestat = result.rows[0];
@@ -328,7 +331,7 @@ router.get('/:id/download', authenticateToken, requireAtestateRole, async (req, 
     console.error('Download atestat error:', error);
     console.error('Error message:', error.message);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Internal server error', message: error.message });
+      res.status(500).json({ error: 'Eroare interna de server', message: error.message });
     }
   }
 });

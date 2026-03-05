@@ -52,7 +52,7 @@ router.get('/', authenticateToken, async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get lists error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -72,7 +72,7 @@ router.get('/my-lists', authenticateToken, async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get my lists error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -82,22 +82,28 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
     const { numar_lista, tip, numar_autorizatii, isf_name } = req.body;
 
     if (!numar_lista || !tip || !numar_autorizatii || !isf_name || !req.file) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Câmpuri obligatorii lipsă' });
     }
 
     if (!['Autorizatii', 'Vize', 'Duplicate', 'Schimbare nume'].includes(tip)) {
-      return res.status(400).json({ error: 'Invalid tip value' });
+      return res.status(400).json({ error: 'Valoare tip invalidă' });
     }
 
-    // Check uniqueness
+    // Normalize to uppercase for consistency
+    const normalizedNumarLista = numar_lista.trim().toUpperCase();
+
+    // Check uniqueness (case-insensitive)
     const existing = await pool.query(
-      'SELECT id, created_date FROM liste_tiparire WHERE numar_lista = $1',
-      [numar_lista]
+      'SELECT id, created_date, numar_lista FROM liste_tiparire WHERE UPPER(numar_lista) = $1',
+      [normalizedNumarLista]
     );
 
     if (existing.rows.length > 0) {
       const existingDate = format(new Date(existing.rows[0].created_date), 'dd.MM.yyyy');
-      return res.status(400).json({ error: `Lista a fost deja încărcată în data de ${existingDate}` });
+      return res.status(400).json({ 
+        error: `Lista cu numărul de comisie ${existing.rows[0].numar_lista} a fost deja încărcată în data de ${existingDate}`,
+        existingId: existing.rows[0].id
+      });
     }
 
     const result = await pool.query(
@@ -107,7 +113,7 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
       [
-        numar_lista,
+        normalizedNumarLista,
         tip,
         isf_name,
         parseInt(numar_autorizatii),
@@ -124,14 +130,14 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
       'CREATE_LISTA',
       'liste_tiparire',
       result.rows[0].id,
-      { numar_lista, tip, isf_name, numar_autorizatii },
+      { numar_lista: normalizedNumarLista, tip, isf_name, numar_autorizatii },
       req.ip
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create list error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -142,7 +148,7 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     const { status } = req.body;
 
     if (!['PRIMITA', 'VERIFICATA', 'TRIMISA'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+      return res.status(400).json({ error: 'Status invalid' });
     }
 
     let updateQuery = 'UPDATE liste_tiparire SET status = $1, updated_at = CURRENT_TIMESTAMP';
@@ -166,7 +172,7 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     const result = await pool.query(updateQuery, params);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'List not found' });
+      return res.status(404).json({ error: 'Lista negasita' });
     }
     
     // Audit log
@@ -182,7 +188,7 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update status error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -227,7 +233,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Get stats error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 
@@ -239,7 +245,7 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
     const result = await pool.query('DELETE FROM liste_tiparire WHERE id = $1 RETURNING id, numar_lista', [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'List not found' });
+      return res.status(404).json({ error: 'Lista negasita' });
     }
 
     // Audit log
@@ -255,7 +261,7 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
     res.json({ message: 'List deleted successfully' });
   } catch (error) {
     console.error('Delete list error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare interna de server' });
   }
 });
 

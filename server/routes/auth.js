@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json({ error: 'Email și parolă sunt obligatorii' });
     }
 
     const result = await pool.query(
@@ -21,14 +21,14 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Email sau parolă incorectă' });
     }
 
     const user = result.rows[0];
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Email sau parolă incorectă' });
     }
 
     const token = jwt.sign(
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -81,13 +81,13 @@ router.get('/me', authenticateToken, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
@@ -103,10 +103,10 @@ router.post('/logout', authenticateToken, async (req, res) => {
       req.ip
     );
 
-    res.json({ message: 'Logged out successfully' });
+    res.json({ message: 'Deconectat cu succes' });
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
 
