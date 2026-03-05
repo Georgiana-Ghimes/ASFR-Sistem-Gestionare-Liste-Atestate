@@ -270,4 +270,44 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
+// Serve PDF with custom filename
+router.get('/:id/pdf', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get list details
+    const result = await pool.query(
+      'SELECT numar_lista, pdf_url, isf_name FROM liste_tiparire WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lista negasita' });
+    }
+    
+    const lista = result.rows[0];
+    
+    // Check access rights
+    if (req.user.role !== 'admin') {
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      if (lista.isf_name !== userOrg) {
+        return res.status(403).json({ error: 'Acces interzis' });
+      }
+    }
+    
+    // Construct file path
+    const filePath = path.join(process.cwd(), lista.pdf_url.replace(/^\//, ''));
+    
+    // Set headers for inline display with custom filename
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${lista.numar_lista}.pdf"`);
+    
+    // Send file
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Serve PDF error:', error);
+    res.status(500).json({ error: 'Eroare interna de server' });
+  }
+});
+
 export default router;

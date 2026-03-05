@@ -74,8 +74,8 @@ export default function AllLists({ user }) {
 
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
-  const handleDownloadPDF = (pdfUrl, filename) => {
-    const url = `${window.location.origin.replace(':5173', ':3001')}${pdfUrl}`;
+  const handleDownloadPDF = (listId, numarLista) => {
+    const url = `${window.location.origin.replace(':5173', ':3001')}/api/liste/${listId}/pdf`;
     window.open(url, '_blank');
   };
 
@@ -378,7 +378,7 @@ export default function AllLists({ user }) {
                                 <Eye className="w-4 h-4 text-gray-500" />
                               </button>
                               <button
-                                onClick={() => handleDownloadPDF(l.pdf_url, l.pdf_filename)}
+                                onClick={() => handleDownloadPDF(l.id, l.numar_lista)}
                                 className="p-1 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-lg transition-colors"
                                 title="Descarcă PDF"
                               >
