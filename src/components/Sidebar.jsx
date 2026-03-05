@@ -9,21 +9,22 @@ export default function Sidebar({ user }) {
   
   const isAdmin = user?.role === 'admin';
   const hasAtestateRole = user?.has_atestate_role;
-  const isCecilia = user?.email === 'ceciliamihaila@sigurantaferoviara.ro';
+  const isCecilia = user?.email === 'cecilia.mihaila@sigurantaferoviara.ro';
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
 
   let navItems = [];
 
   if (isCecilia) {
-    // Cecilia vede DOAR meniurile de Atestate
+    // Cecilia vede Dashboard și meniurile de Atestate
     navItems = [
+      { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
       { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
     ];
   } else if (isAdmin) {
     // Administratorii (în afară de Cecilia) văd TOT
     navItems = [
-      { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Administrare Liste", path: "/all-lists", icon: List },
       { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
       ...(hasAtestateRole
@@ -37,7 +38,7 @@ export default function Sidebar({ user }) {
   } else if (isRegularUser) {
     // Utilizatorii ISF/CISF/SCSC văd doar zonele lor
     navItems = [
-      { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Listele mele", path: "/my-lists", icon: List },
       { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
       ...(hasAtestateRole
@@ -57,8 +58,8 @@ export default function Sidebar({ user }) {
             <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Autorizații</p>
-            <p className="text-slate-400 text-xs">Tipărire Liste</p>
+            <p className="text-white font-bold text-sm leading-tight">Liste/Atestate</p>
+            <p className="text-slate-400 text-xs">ASFR</p>
           </div>
         </div>
       </div>
@@ -87,8 +88,8 @@ export default function Sidebar({ user }) {
       <div className="px-4 py-4 border-t border-slate-700/60">
         <p className="text-slate-400 text-xs mb-1">Conectat ca</p>
         <p className="text-white text-sm font-medium truncate">{user?.email}</p>
-        {(user?.isf_name || user?.cisf_name) && (
-          <p className="text-blue-400 text-xs mt-0.5 font-medium">{user.isf_name || user.cisf_name}</p>
+        {(user?.isf_name || user?.cisf_name || user?.scsc_name) && (
+          <p className="text-blue-400 text-xs mt-0.5 font-medium">{user.isf_name || user.cisf_name || user.scsc_name}</p>
         )}
         <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs font-semibold bg-slate-700 text-slate-300">
           {user?.role}

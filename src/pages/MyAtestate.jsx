@@ -39,7 +39,7 @@ export default function MyAtestate({ user }) {
             >
               Lista Atestate
             </button>
-            {user.email === 'ceciliamihaila@sigurantaferoviara.ro' && (
+            {user.email === 'cecilia.mihaila@sigurantaferoviara.ro' && (
               <button
                 onClick={() => setActiveTab("baza")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${

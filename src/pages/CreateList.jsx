@@ -16,24 +16,56 @@ export default function CreateList({ user }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [isfCisfList, setIsfCisfList] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
 
   useEffect(() => {
-    loadIsfCisfList();
+    loadOrganizations();
   }, []);
 
-  const loadIsfCisfList = async () => {
+  const loadOrganizations = async () => {
     try {
-      const list = await apiClient.getIsfCisfList();
-      setIsfCisfList(list);
+      // Use isf-cisf-list endpoint which is accessible to all authenticated users
+      const orgNames = await apiClient.getIsfCisfList();
       
-      // Set default value to current user's ISF/CISF/SCSC if available
-      if (user?.isf_name || user?.cisf_name || user?.scsc_name) {
-        setForm(prev => ({ ...prev, isf_name: user.isf_name || user.cisf_name || user.scsc_name }));
+      // For admin users, get full user list to map names to types
+      let orgs = [];
+      if (user.role === 'admin') {
+        const users = await apiClient.getAllUsers();
+        orgs = users
+          .filter(u => u.isf_name || u.cisf_name || u.scsc_name)
+          .map(u => ({
+            type: u.role,
+            name: u.isf_name || u.cisf_name || u.scsc_name
+          }))
+          .filter((org, index, self) => 
+            index === self.findIndex(o => o.name === org.name)
+          )
+          .sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        // For non-admin, create org object from user data
+        const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+        if (userOrgName) {
+          orgs = [{
+            type: user.role,
+            name: userOrgName
+          }];
+        }
       }
-    } catch (error) {
-      console.error('Failed to load ISF/CISF/SCSC list:', error);
+      
+      setOrganizations(orgs);
+
+      // Pre-select organization
+      const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+      
+      if (userOrgName) {
+        setForm(prev => ({
+          ...prev,
+          isf_name: userOrgName
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to load organizations:', err);
     } finally {
       setLoadingList(false);
     }
@@ -128,6 +160,35 @@ export default function CreateList({ user }) {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              ISF / CISF / SCSC <span className="text-red-500">*</span>
+            </label>
+            {loadingList ? (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-gray-500">Se încarcă...</span>
+              </div>
+            ) : user.role === 'admin' ? (
+              <select
+                value={form.isf_name}
+                onChange={(e) => setForm({ ...form, isf_name: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              >
+                <option value="">Selectează ISF / CISF / SCSC</option>
+                {organizations.map((org) => (
+                  <option key={org.name} value={org.name}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 font-medium">
+                {form.isf_name || 'Se încarcă...'}
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Număr Listă <span className="text-red-500">*</span>
@@ -165,29 +226,6 @@ export default function CreateList({ user }) {
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               placeholder="ex: 25"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              ISF / CISF / SCSC <span className="text-red-500">*</span>
-            </label>
-            {loadingList ? (
-              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-gray-500">Se încarcă...</span>
-              </div>
-            ) : (
-              <select
-                value={form.isf_name}
-                onChange={(e) => setForm({ ...form, isf_name: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              >
-                {user?.role === 'admin' && <option value="">Selectează ISF/CISF/SCSC</option>}
-                {isfCisfList.map((name) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-            )}
           </div>
         </div>
 

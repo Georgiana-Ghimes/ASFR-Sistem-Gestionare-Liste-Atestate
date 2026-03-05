@@ -3,15 +3,20 @@ import multer from 'multer';
 import path from 'path';
 import archiver from 'archiver';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -84,9 +89,9 @@ router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, r
 // Create new atestat
 router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 20), async (req, res) => {
   try {
-    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, observatii } = req.body;
+    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, observatii, organization_type, organization_name } = req.body;
 
-    if (!numar_atestat || !data_atestat || !nume_complet || !din_cadrul || !functie) {
+    if (!numar_atestat || !data_atestat || !nume_complet || !din_cadrul || !functie || !organization_type || !organization_name) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -114,7 +119,7 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
     const pdf2_filename = req.files[1] ? req.files[1].originalname : null;
     const pdf3_filename = req.files[2] ? req.files[2].originalname : null;
     
-    // Store all file paths as JSON for files beyond the first 3
+    // Store all file paths as JSON
     const allFiles = req.files.map(file => ({
       url: `/uploads/${file.filename}`,
       filename: file.originalname
@@ -124,8 +129,8 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
       `INSERT INTO atestate 
        (numar_atestat, data_atestat, nume_complet, din_cadrul, functie, 
         pdf1_url, pdf1_filename, pdf2_url, pdf2_filename, pdf3_url, pdf3_filename,
-        all_files, observatii, created_by_email) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+        all_files, observatii, created_by_email, organization_type, organization_name) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
        RETURNING *`,
       [
         numar_atestat,
@@ -141,14 +146,18 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
         pdf3_filename,
         JSON.stringify(allFiles),
         observatii || null,
-        req.user.email
+        req.user.email,
+        organization_type,
+        organization_name
       ]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create atestat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 
@@ -174,6 +183,37 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Update atestat status
+router.patch('/:id/status', authenticateToken, requireAtestateRole, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['PRIMITA', 'VERIFICATA', 'TRIMISA'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    // Set verificat_at when status changes to VERIFICATA
+    // Set trimis_at when status changes to TRIMISA
+    const verificatAt = status === 'VERIFICATA' ? new Date() : null;
+    const trimisAt = status === 'TRIMISA' ? new Date() : null;
+
+    const result = await pool.query(
+      'UPDATE atestate SET status = $1, verificat_at = COALESCE(verificat_at, $2), trimis_at = COALESCE(trimis_at, $3), updated_at = NOW() WHERE id = $4 RETURNING *',
+      [status, verificatAt, trimisAt, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Atestat not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update atestat status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Download atestat files as ZIP
 router.get('/:id/download', authenticateToken, requireAtestateRole, async (req, res) => {
   try {
@@ -193,30 +233,50 @@ router.get('/:id/download', authenticateToken, requireAtestateRole, async (req, 
       return res.status(403).json({ error: 'Access denied' });
     }
     
+    // Use organization name as ZIP filename (sanitize for filesystem)
+    const sanitizedName = (atestat.organization_name || 'atestat').replace(/[^a-zA-Z0-9_-]/g, '_');
+    
     // Create ZIP archive
     const archive = archiver('zip', { zlib: { level: 9 } });
     
-    res.attachment(`atestat_${atestat.numar_atestat}.zip`);
+    // Set response headers
+    res.attachment(`${sanitizedName}.zip`);
+    res.setHeader('Content-Type', 'application/zip');
+    
+    // Pipe archive to response
     archive.pipe(res);
     
-    // Add files to archive from all_files JSON
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    const uploadsDir = path.join(__dirname, '..');
+    // Handle archive errors
+    archive.on('error', (err) => {
+      console.error('Archive error:', err);
+      throw err;
+    });
     
-    if (atestat.all_files) {
-      const allFiles = JSON.parse(atestat.all_files);
-      allFiles.forEach((fileInfo, index) => {
-        const filePath = path.join(uploadsDir, fileInfo.url.replace(/^\//, ''));
+    // Add files to archive from all_files JSONB (already parsed by pg)
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    
+    if (atestat.all_files && Array.isArray(atestat.all_files)) {
+      atestat.all_files.forEach((fileInfo, index) => {
+        const filename = path.basename(fileInfo.url);
+        const filePath = path.join(uploadsDir, filename);
+        
         if (fs.existsSync(filePath)) {
           archive.file(filePath, { name: `Exemplar_${index + 1}_${fileInfo.filename}` });
+        } else {
+          console.warn(`File not found: ${filePath}`);
         }
       });
     }
     
-    archive.finalize();
+    // Finalize the archive
+    await archive.finalize();
+    
   } catch (error) {
     console.error('Download atestat error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error message:', error.message);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
   }
 });
 

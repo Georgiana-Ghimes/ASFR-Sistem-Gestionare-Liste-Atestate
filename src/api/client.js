@@ -153,6 +153,13 @@ class ApiClient {
       method: 'DELETE'
     });
   }
+
+  async updateAtestatStatus(id, status) {
+    return this.request(`/atestate/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { Upload, Save, AlertCircle, CheckCircle, FileText } from "lucide-react";
@@ -12,11 +12,68 @@ export default function CreateAtestat({ user }) {
     din_cadrul: "",
     functie: "",
     observatii: "",
+    organization_type: "",
+    organization_name: "",
   });
-  const [pdfFiles, setPdfFiles] = useState([]); // Multiple files
+  const [organizations, setOrganizations] = useState([]);
+  const [pdfFiles, setPdfFiles] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    loadOrganizations();
+  }, []);
+
+  const loadOrganizations = async () => {
+    try {
+      // Use isf-cisf-list endpoint which is accessible to all authenticated users
+      const orgNames = await apiClient.getIsfCisfList();
+      
+      // For admin users, get full user list to map names to types
+      let orgs = [];
+      if (user.role === 'admin') {
+        const users = await apiClient.getAllUsers();
+        orgs = users
+          .filter(u => u.isf_name || u.cisf_name || u.scsc_name)
+          .map(u => ({
+            type: u.role,
+            name: u.isf_name || u.cisf_name || u.scsc_name
+          }))
+          .filter((org, index, self) => 
+            index === self.findIndex(o => o.name === org.name)
+          )
+          .sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        // For non-admin, create org object from user data
+        const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+        if (userOrgName) {
+          orgs = [{
+            type: user.role,
+            name: userOrgName
+          }];
+        }
+      }
+      
+      setOrganizations(orgs);
+
+      // Pre-select organization
+      const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+      
+      if (userOrgName) {
+        const userOrg = orgs.find(o => o.name === userOrgName);
+        if (userOrg) {
+          setForm(prev => ({
+            ...prev,
+            organization_type: userOrg.type,
+            organization_name: userOrg.name
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load organizations:', err);
+    }
+  };
 
   if (!user || (!user.has_atestate_role && user.role !== 'admin')) {
     return (
@@ -58,6 +115,7 @@ export default function CreateAtestat({ user }) {
     e.preventDefault();
     setError("");
 
+    if (!form.organization_type || !form.organization_name) { setError("ISF / CISF / SCSC este obligatoriu."); return; }
     if (!form.numar_atestat.trim()) { setError("Seria este obligatorie."); return; }
     if (!form.data_atestat) { setError("Data atestatului / Procesului Verbal este obligatorie."); return; }
     if (!form.nume_complet.trim()) { setError("Numele complet este obligatoriu."); return; }
@@ -72,6 +130,8 @@ export default function CreateAtestat({ user }) {
 
     try {
       const formData = new FormData();
+      formData.append('organization_type', form.organization_type);
+      formData.append('organization_name', form.organization_name);
       formData.append('numar_atestat', form.numar_atestat.trim());
       formData.append('data_atestat', form.data_atestat);
       formData.append('nume_complet', form.nume_complet.trim());
@@ -124,6 +184,37 @@ export default function CreateAtestat({ user }) {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              ISF / CISF / SCSC <span className="text-red-500">*</span>
+            </label>
+            {user.role === 'admin' ? (
+              <select
+                value={form.organization_name}
+                onChange={(e) => {
+                  const selectedOrg = organizations.find(o => o.name === e.target.value);
+                  setForm({ 
+                    ...form, 
+                    organization_name: e.target.value,
+                    organization_type: selectedOrg?.type || ''
+                  });
+                }}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+              >
+                <option value="">Selectează ISF / CISF / SCSC</option>
+                {organizations.map((org) => (
+                  <option key={org.name} value={org.name}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 font-medium">
+                {form.organization_name || 'Se încarcă...'}
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Seria <span className="text-red-500">*</span>

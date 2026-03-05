@@ -38,7 +38,7 @@ const AppLayout = () => {
       <Sidebar user={user} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
-          <Route path="/" element={<Navigate to={user?.email === 'ceciliamihaila@sigurantaferoviara.ro' ? '/all-atestate' : '/dashboard'} replace />} />
+          <Route path="/" element={<Navigate to={user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' ? '/all-atestate' : '/dashboard'} replace />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/my-lists" element={<MyLists user={user} />} />
           <Route path="/all-lists" element={<AllLists user={user} />} />

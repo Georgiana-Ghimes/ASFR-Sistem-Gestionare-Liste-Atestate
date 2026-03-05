@@ -33,7 +33,7 @@ export default function Login() {
           <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg p-3">
             <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Liste Autorizații</h1>
+          <h1 className="text-2xl font-bold text-gray-900">LISTE/ATESTATE</h1>
           <p className="text-gray-500 mt-2 text-sm">Autentificare în sistem</p>
         </div>
 
@@ -93,12 +93,9 @@ export default function Login() {
         </form>
 
         <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-          <p className="text-xs text-gray-500 font-semibold mb-2">Conturi demo:</p>
-          <div className="space-y-1 text-xs text-gray-600">
-            <p>Admin: admin@test.com / password123</p>
-            <p>CISF: cisf@test.com / password123</p>
-            <p>ISF: isf.bucuresti@test.com / password123</p>
-          </div>
+          <p className="text-xs text-gray-600 text-center">
+            Autoritatea de Siguranță Feroviară Română
+          </p>
         </div>
       </div>
     </div>

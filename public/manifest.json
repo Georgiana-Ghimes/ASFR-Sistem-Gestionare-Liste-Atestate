@@ -1,0 +1,16 @@
+{
+  "name": "ASFR - LISTE/ATESTATE",
+  "short_name": "ASFR",
+  "description": "Aplicație pentru gestionarea listelor și atestatelor ASFR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "/asfr-emboss.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
