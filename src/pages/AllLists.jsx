@@ -11,7 +11,7 @@ const COLUMNS = [
   { label: "Data", col: "data_lista" },
   { label: "Nr. Autorizații", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
-  { label: "Creat La", col: "created_date" },
+  { label: "Urcat La", col: "created_date" },
   { label: "Verificat La", col: "verificat_at" },
   { label: "Trimis La", col: "trimis_at" },
   { label: "Acțiuni", col: null },
@@ -267,8 +267,22 @@ export default function AllLists({ user }) {
                       <td className="px-4 py-3 text-sm text-gray-600">{l.numar_autorizatii}</td>
                       <td className="px-4 py-3"><StatusBadge status={l.status} /></td>
                       <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{fmtDate(l.created_date)}</td>
-                      <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{fmtDate(l.verificat_at)}</td>
-                      <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{fmtDate(l.trimis_at)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400">
+                        {l.verificat_at ? (
+                          <>
+                            {format(new Date(l.verificat_at), "dd.MM.yyyy HH:mm")}
+                            {l.verificat_by && <div>({l.verificat_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-400">
+                        {l.trimis_at ? (
+                          <>
+                            {format(new Date(l.trimis_at), "dd.MM.yyyy HH:mm")}
+                            {l.trimis_by && <div>({l.trimis_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {l.pdf_url && (

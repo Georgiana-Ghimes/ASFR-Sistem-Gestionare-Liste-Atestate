@@ -193,14 +193,16 @@ router.patch('/:id/status', authenticateToken, requireAtestateRole, async (req, 
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    // Set verificat_at when status changes to VERIFICATA
-    // Set trimis_at when status changes to TRIMISA
+    // Set verificat_at and verificat_by when status changes to VERIFICATA
+    // Set trimis_at and trimis_by when status changes to TRIMISA
     const verificatAt = status === 'VERIFICATA' ? new Date() : null;
+    const verificatBy = status === 'VERIFICATA' ? req.user.email : null;
     const trimisAt = status === 'TRIMISA' ? new Date() : null;
+    const trimisBy = status === 'TRIMISA' ? req.user.email : null;
 
     const result = await pool.query(
-      'UPDATE atestate SET status = $1, verificat_at = COALESCE(verificat_at, $2), trimis_at = COALESCE(trimis_at, $3), updated_at = NOW() WHERE id = $4 RETURNING *',
-      [status, verificatAt, trimisAt, id]
+      'UPDATE atestate SET status = $1, verificat_at = COALESCE(verificat_at, $2), verificat_by = COALESCE(verificat_by, $3), trimis_at = COALESCE(trimis_at, $4), trimis_by = COALESCE(trimis_by, $5), updated_at = NOW() WHERE id = $6 RETURNING *',
+      [status, verificatAt, verificatBy, trimisAt, trimisBy, id]
     );
 
     if (result.rows.length === 0) {

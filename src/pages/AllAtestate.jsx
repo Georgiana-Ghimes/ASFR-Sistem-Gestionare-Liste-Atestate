@@ -167,7 +167,7 @@ export default function AllAtestate({ user }) {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Specialitate</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Creat La</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Urcat La</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Verificat La</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Trimis La</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
@@ -199,9 +199,30 @@ export default function AllAtestate({ user }) {
                           <StatusBadge status={atestat.status || 'PRIMITA'} />
                         )}
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-nowrap">{fmtDate(atestat.created_date)}</td>
-                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-nowrap">{fmtDate(atestat.verificat_at)}</td>
-                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-nowrap">{fmtDate(atestat.trimis_at)}</td>
+                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-pre-line">
+                        {atestat.created_date ? (
+                          <>
+                            {format(new Date(atestat.created_date), "dd.MM.yyyy HH:mm")}
+                            {atestat.created_by_email && <div>({atestat.created_by_email})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-400">
+                        {atestat.verificat_at ? (
+                          <>
+                            {format(new Date(atestat.verificat_at), "dd.MM.yyyy HH:mm")}
+                            {atestat.verificat_by && <div>({atestat.verificat_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-400">
+                        {atestat.trimis_at ? (
+                          <>
+                            {format(new Date(atestat.trimis_at), "dd.MM.yyyy HH:mm")}
+                            {atestat.trimis_by && <div>({atestat.trimis_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
