@@ -220,21 +220,21 @@ export default function MyAtestate({ user }) {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab("lista")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "lista"
-                  ? "border-pink-500 text-pink-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Lista Atestate
-            </button>
-            {user.email === 'cecilia.mihaila@sigurantaferoviara.ro' && (
+      {/* Tabs - only visible for Cecilia */}
+      {user.email === 'cecilia.mihaila@sigurantaferoviara.ro' && (
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("lista")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "lista"
+                    ? "border-pink-500 text-pink-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Lista Atestate
+              </button>
               <button
                 onClick={() => setActiveTab("baza")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -245,10 +245,10 @@ export default function MyAtestate({ user }) {
               >
                 Baza de Evidență
               </button>
-            )}
-          </nav>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tab Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
