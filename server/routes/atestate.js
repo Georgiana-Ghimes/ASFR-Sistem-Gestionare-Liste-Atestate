@@ -57,10 +57,16 @@ router.get('/', authenticateToken, requireAtestateRole, async (req, res) => {
     let query = 'SELECT * FROM atestate';
     const params = [];
     
-    // Non-admin users can only see their own atestate
+    // Non-admin users can only see atestate from their organization
     if (req.user.role !== 'admin') {
-      query += ' WHERE created_by_email = $1';
-      params.push(req.user.email);
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      if (userOrg) {
+        query += ' WHERE organization_name = $1';
+        params.push(userOrg);
+      } else {
+        // If user has no organization, show nothing
+        return res.json([]);
+      }
     }
     
     query += ' ORDER BY created_date DESC';
