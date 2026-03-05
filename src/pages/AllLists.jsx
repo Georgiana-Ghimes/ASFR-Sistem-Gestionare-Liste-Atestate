@@ -9,7 +9,8 @@ const COLUMNS = [
   { label: "", col: null }, // Empty column for NOU badge
   { label: "ISF / CISF / SCSC", col: "isf_name" },
   { label: "Nr. Comisie", col: "numar_lista" },
-  { label: "Nr. Aut.", col: "numar_autorizatii" },
+  { label: "Tip", col: "tip" },
+  { label: "Nr. Aut./Exam.", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
   { label: "Urcată de", col: "created_date" },
   { label: "Verificată de", col: "verificat_at" },
@@ -108,17 +109,19 @@ export default function AllLists({ user }) {
 
   const handleExport = () => {
     const headers = [
-      "ISF / CISF / SCSC", "Număr Comisie", "Nr. Autorizații", "Status",
+      "ISF / CISF / SCSC", "Număr Comisie", "Tip", "Nr. Autorizații", "Status",
       "Urcat La", "Verificat La", "Trimis La", "Urcat De", "Verificat De", "Trimis De"
     ];
     const rows = filtered.map((l) => [
       l.isf_name || "",
       l.numar_lista || "",
+      l.tip || "",
       l.numar_autorizatii || "",
       l.status || "",
       l.created_date ? format(new Date(l.created_date), "dd.MM.yyyy HH:mm") : "",
       l.verificat_at ? format(new Date(l.verificat_at), "dd.MM.yyyy HH:mm") : "",
       l.trimis_at ? format(new Date(l.trimis_at), "dd.MM.yyyy HH:mm") : "",
+      l.created_by_email || "",
       l.verificat_by || "",
       l.trimis_by || "",
     ]);
@@ -287,6 +290,7 @@ export default function AllLists({ user }) {
                       </td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.isf_name}</td>
                       <td className="px-3 py-2 text-xs font-semibold text-gray-900 text-center">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.tip || "-"}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>
                       <td className="px-3 py-2 text-center">
                         {user?.role === 'admin' ? (

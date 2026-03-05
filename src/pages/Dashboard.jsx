@@ -117,6 +117,10 @@ export default function Dashboard({ user }) {
         verificata: isfLists.filter((l) => l.status === "VERIFICATA").length,
         trimisa: isfLists.filter((l) => l.status === "TRIMISA").length,
         trimisaLuna: isfListsLuna.filter((l) => l.status === "TRIMISA").length,
+        totalAutorizatii: isfLists.filter((l) => l.tip === "Autorizatii").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalVize: isfLists.filter((l) => l.tip === "Vize").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalDuplicate: isfLists.filter((l) => l.tip === "Duplicate").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalSchimbareNume: isfLists.filter((l) => l.tip === "Schimbare nume").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
       };
     });
 
@@ -248,7 +252,7 @@ export default function Dashboard({ user }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ISF / CISF / SCSC", "Total Liste", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
+                      {["ISF / CISF / SCSC", "Total Liste", "Total Autorizații", "Total Vize", "Total Duplicate", "Total Schimbare nume", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
                         <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -258,7 +262,7 @@ export default function Dashboard({ user }) {
                   <tbody className="divide-y divide-gray-50">
                     {isfStats.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        <td colSpan={9} className="px-6 py-12 text-center text-gray-400 text-sm">
                           Nu există date disponibile.
                         </td>
                       </tr>
@@ -267,6 +271,10 @@ export default function Dashboard({ user }) {
                         <tr key={row.isf_name} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900">{row.isf_name}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{row.total}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalAutorizatii}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalVize}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalDuplicate}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalSchimbareNume}</td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                               {row.primita}

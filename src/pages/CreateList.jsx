@@ -7,6 +7,7 @@ export default function CreateList({ user }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     numar_lista: "",
+    tip: "Autorizatii",
     numar_autorizatii: "",
     isf_name: "",
   });
@@ -111,6 +112,7 @@ export default function CreateList({ user }) {
     try {
       const formData = new FormData();
       formData.append('numar_lista', form.numar_lista.trim());
+      formData.append('tip', form.tip);
       formData.append('isf_name', form.isf_name);
       formData.append('numar_autorizatii', form.numar_autorizatii);
       formData.append('pdf', pdfFile);
@@ -199,7 +201,23 @@ export default function CreateList({ user }) {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Număr Autorizații <span className="text-red-500">*</span>
+              Tip <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={form.tip}
+              onChange={(e) => setForm({ ...form, tip: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            >
+              <option value="Autorizatii">Autorizații</option>
+              <option value="Vize">Vize</option>
+              <option value="Duplicate">Duplicate</option>
+              <option value="Schimbare nume">Schimbare nume</option>
+            </select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Număr (Autorizații/Vize/Duplicate/Schimbare nume) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"

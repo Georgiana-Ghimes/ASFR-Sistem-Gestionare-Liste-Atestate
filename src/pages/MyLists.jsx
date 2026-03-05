@@ -133,7 +133,8 @@ export default function MyLists({ user }) {
                 <tr className="bg-gray-50 border-b border-gray-100">
                   {[
                     { label: "Număr Comisie", col: "numar_lista" },
-                    { label: "Nr. Autorizații", col: "numar_autorizatii" },
+                    { label: "Tip", col: "tip" },
+                    { label: "Nr. Aut./Exam.", col: "numar_autorizatii" },
                     { label: "Status", col: "status" },
                     { label: "Urcată de", col: "created_date" },
                     { label: "Verificată de", col: "verificat_at" },
@@ -156,7 +157,7 @@ export default function MyLists({ user }) {
               <tbody className="divide-y divide-gray-50">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-16 text-center text-gray-400 text-sm">
+                    <td colSpan={8} className="px-6 py-16 text-center text-gray-400 text-sm">
                       Nu există liste care să corespundă filtrelor selectate.
                     </td>
                   </tr>
@@ -167,6 +168,7 @@ export default function MyLists({ user }) {
                       'hover:bg-gray-50/50'
                     }`}>
                       <td className="px-3 py-2 text-xs font-semibold text-gray-900 text-center">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.tip || "-"}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>
                       <td className="px-3 py-2 text-center">
                         <div className="flex justify-center">

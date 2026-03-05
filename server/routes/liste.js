@@ -78,10 +78,14 @@ router.get('/my-lists', authenticateToken, async (req, res) => {
 // Create new list (ISF/CISF/SCSC/admin)
 router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'), upload.single('pdf'), async (req, res) => {
   try {
-    const { numar_lista, numar_autorizatii, isf_name } = req.body;
+    const { numar_lista, tip, numar_autorizatii, isf_name } = req.body;
 
-    if (!numar_lista || !numar_autorizatii || !isf_name || !req.file) {
+    if (!numar_lista || !tip || !numar_autorizatii || !isf_name || !req.file) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (!['Autorizatii', 'Vize', 'Duplicate', 'Schimbare nume'].includes(tip)) {
+      return res.status(400).json({ error: 'Invalid tip value' });
     }
 
     // Check uniqueness
@@ -97,12 +101,13 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
 
     const result = await pool.query(
       `INSERT INTO liste_tiparire 
-       (numar_lista, isf_name, numar_autorizatii, pdf_url, pdf_filename, 
+       (numar_lista, tip, isf_name, numar_autorizatii, pdf_url, pdf_filename, 
         status, created_by_email) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
       [
         numar_lista,
+        tip,
         isf_name,
         parseInt(numar_autorizatii),
         `/uploads/${req.file.filename}`,
