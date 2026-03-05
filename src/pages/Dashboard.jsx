@@ -111,21 +111,31 @@ export default function Dashboard({ user }) {
   const isfStats = allISFs
     .filter((isf) => !filterISF || isf === filterISF)
     .map((isf) => {
-      const isfLists = filteredByStat.filter((l) => l.isf_name === isf);
+      // Filter lists by ISF and by selected month/year for the statistics table
+      const isfListsByPeriod = lists.filter((l) => {
+        if (l.isf_name !== isf) return false;
+        if (l.created_date) {
+          const d = new Date(l.created_date);
+          if (getMonth(d) + 1 !== nowMonth) return false;
+          if (getYear(d) !== nowYear) return false;
+        } else return false;
+        return true;
+      });
       const isfListsLuna = filteredByPeriod.filter((l) => l.isf_name === isf);
       return {
         isf_name: isf,
-        total: isfLists.length,
-        primita: isfLists.filter((l) => l.status === "PRIMITA").length,
-        verificata: isfLists.filter((l) => l.status === "VERIFICATA").length,
-        trimisa: isfLists.filter((l) => l.status === "TRIMISA").length,
+        total: isfListsByPeriod.length,
+        primita: isfListsByPeriod.filter((l) => l.status === "PRIMITA").length,
+        verificata: isfListsByPeriod.filter((l) => l.status === "VERIFICATA").length,
+        trimisa: isfListsByPeriod.filter((l) => l.status === "TRIMISA").length,
         trimisaLuna: isfListsLuna.filter((l) => l.status === "TRIMISA").length,
-        totalAutorizatii: isfLists.filter((l) => l.tip === "Autorizatii").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
-        totalVize: isfLists.filter((l) => l.tip === "Vize").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
-        totalDuplicate: isfLists.filter((l) => l.tip === "Duplicate").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
-        totalSchimbareNume: isfLists.filter((l) => l.tip === "Schimbare nume").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalAutorizatii: isfListsByPeriod.filter((l) => l.tip === "Autorizatii").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalVize: isfListsByPeriod.filter((l) => l.tip === "Vize").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalDuplicate: isfListsByPeriod.filter((l) => l.tip === "Duplicate").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
+        totalSchimbareNume: isfListsByPeriod.filter((l) => l.tip === "Schimbare nume").reduce((sum, l) => sum + (l.numar_autorizatii || 0), 0),
       };
-    });
+    })
+    .filter((stat) => stat.total > 0); // Only show ISFs that have lists in the selected period
 
   const months = [
     { v: "01", l: "Ianuarie" }, { v: "02", l: "Februarie" }, { v: "03", l: "Martie" },
@@ -137,17 +147,27 @@ export default function Dashboard({ user }) {
   const atestateStats = allOrgsFromAtestate
     .filter((org) => !filterISF || org === filterISF)
     .map((org) => {
-      const orgAtestate = filteredAtestateByStat.filter((a) => a.organization_name === org);
+      // Filter atestate by organization and by selected month/year for the statistics table
+      const orgAtestateByPeriod = atestate.filter((a) => {
+        if (a.organization_name !== org) return false;
+        if (a.created_date) {
+          const d = new Date(a.created_date);
+          if (getMonth(d) + 1 !== nowMonth) return false;
+          if (getYear(d) !== nowYear) return false;
+        } else return false;
+        return true;
+      });
       const orgAtestateLuna = filteredAtestateByPeriod.filter((a) => a.organization_name === org);
       return {
         organization_name: org,
-        total: orgAtestate.length,
-        primita: orgAtestate.filter((a) => a.status === "PRIMITA").length,
-        verificata: orgAtestate.filter((a) => a.status === "VERIFICATA").length,
-        trimisa: orgAtestate.filter((a) => a.status === "TRIMISA").length,
+        total: orgAtestateByPeriod.length,
+        primita: orgAtestateByPeriod.filter((a) => a.status === "PRIMITA").length,
+        verificata: orgAtestateByPeriod.filter((a) => a.status === "VERIFICATA").length,
+        trimisa: orgAtestateByPeriod.filter((a) => a.status === "TRIMISA").length,
         trimisaLuna: orgAtestateLuna.filter((a) => a.status === "TRIMISA").length
       };
-    });
+    })
+    .filter((stat) => stat.total > 0); // Only show organizations that have atestate in the selected period
 
   const handleGenerateListeReport = () => {
     const currentMonth = new Date().getMonth() + 1;
