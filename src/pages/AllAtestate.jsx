@@ -131,8 +131,8 @@ export default function AllAtestate({ user }) {
     .filter((a) => {
       if (filterStatus !== "ALL" && a.status !== filterStatus) return false;
       if (filterOrg && a.organization_name !== filterOrg) return false;
-      if (filterFrom && a.data_atestat < filterFrom) return false;
-      if (filterTo && a.data_atestat > filterTo) return false;
+      if (filterFrom && a.created_date < filterFrom) return false;
+      if (filterTo && a.created_date > filterTo) return false;
       if (search && !a.numar_atestat.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
@@ -209,47 +209,62 @@ export default function AllAtestate({ user }) {
             <span className="text-sm font-semibold text-gray-700">Filtre</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Căutare</label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Seria..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">ISF / CISF / SCSC</label>
+              <select
+                value={filterOrg}
+                onChange={(e) => setFilterOrg(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="">Toate ISF-urile</option>
+                {allOrgs.map((org) => (
+                  <option key={org} value={org}>{org}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="ALL">Toate statusurile</option>
+                <option value="PRIMITA">PRIMITĂ</option>
+                <option value="VERIFICATA">VERIFICATĂ</option>
+                <option value="TRIMISA">TRIMISĂ</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Urcat de la</label>
               <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Seria..."
-                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                type="date"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
               />
             </div>
-            <select
-              value={filterOrg}
-              onChange={(e) => setFilterOrg(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            >
-              <option value="">Toate ISF-urile</option>
-              {allOrgs.map((org) => (
-                <option key={org} value={org}>{org}</option>
-              ))}
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            >
-              <option value="ALL">Toate statusurile</option>
-              <option value="PRIMITA">PRIMITĂ</option>
-              <option value="VERIFICATA">VERIFICATĂ</option>
-              <option value="TRIMISA">TRIMISĂ</option>
-            </select>
-            <input
-              type="date"
-              value={filterFrom}
-              onChange={(e) => setFilterFrom(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-            <input
-              type="date"
-              value={filterTo}
-              onChange={(e) => setFilterTo(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Până la</label>
+              <input
+                type="date"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
           </div>
         </div>
       )}
