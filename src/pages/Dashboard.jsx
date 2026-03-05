@@ -5,7 +5,9 @@ import { List, Clock, CheckCircle, Send, Calendar } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 
 export default function Dashboard({ user }) {
-  const [activeTab, setActiveTab] = useState("liste");
+  const [activeTab, setActiveTab] = useState(
+    user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' ? "atestate" : "liste"
+  );
   const [lists, setLists] = useState([]);
   const [atestate, setAtestate] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -215,16 +217,18 @@ export default function Dashboard({ user }) {
           <div className="mb-6">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab("liste")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === "liste"
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Statistici Liste
-                </button>
+                {user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && (
+                  <button
+                    onClick={() => setActiveTab("liste")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === "liste"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Statistici Liste
+                  </button>
+                )}
                 {(user?.has_atestate_role || user?.role === 'admin') && user?.email !== 'daniel.bulearca@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("atestate")}
