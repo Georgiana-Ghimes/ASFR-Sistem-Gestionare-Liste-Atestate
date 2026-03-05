@@ -330,7 +330,7 @@ export default function AllAtestate({ user }) {
                 <tbody className="divide-y divide-gray-50">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan="13" className="px-6 py-16 text-center text-gray-400 text-sm">
+                      <td colSpan={13} className="px-6 py-16 text-center text-gray-400 text-sm">
                         Nu există atestate care să corespundă filtrelor selectate.
                       </td>
                     </tr>
