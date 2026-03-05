@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Award, AlertCircle, Download, Loader2, Eye } from "lucide-react";
+import { Award, AlertCircle, Download, Loader2, Eye, Search, Filter } from "lucide-react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "@/components/StatusBadge";
 import PDFViewerModal from "@/components/PDFViewerModal";
@@ -14,6 +14,10 @@ export default function MyAtestate({ user }) {
   const [downloading, setDownloading] = useState(null);
   const [pdfModal, setPdfModal] = useState(null);
   const [highlightId, setHighlightId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -92,7 +96,7 @@ export default function MyAtestate({ user }) {
       "Specialitate", "Status", "Urcat La", "Verificat La", "Trimis La", 
       "Urcat De", "Verificat De", "Trimis De"
     ];
-    const rows = atestate.map((a) => [
+    const rows = filtered.map((a) => [
       a.numar_atestat || "",
       a.numar_atestat_format || "",
       a.data_atestat ? format(new Date(a.data_atestat), "dd.MM.yyyy") : "",
@@ -116,6 +120,14 @@ export default function MyAtestate({ user }) {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const filtered = atestate.filter((a) => {
+    if (filterStatus !== "ALL" && a.status !== filterStatus) return false;
+    if (filterFrom && a.created_date < filterFrom) return false;
+    if (filterTo && a.created_date > filterTo) return false;
+    if (search && !a.numar_atestat_format?.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   if (!user || !user.has_atestate_role) {
     return (
@@ -157,6 +169,57 @@ export default function MyAtestate({ user }) {
         )}
       </div>
 
+      {/* Filters */}
+      {activeTab === "lista" && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-700">Filtre</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Caută număr..."
+                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="ALL">Toate statusurile</option>
+                <option value="PRIMITA">PRIMITĂ</option>
+                <option value="VERIFICATA">VERIFICATĂ</option>
+                <option value="TRIMISA">TRIMISĂ</option>
+              </select>
+            </div>
+            <div>
+              <input
+                type="date"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                placeholder="Urcat de la"
+              />
+            </div>
+            <div>
+              <input
+                type="date"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                placeholder="Până la"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="mb-6">
         <div className="border-b border-gray-200">
@@ -194,11 +257,11 @@ export default function MyAtestate({ user }) {
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 text-pink-600 animate-spin" />
             </div>
-          ) : atestate.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="text-center py-12">
               <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Niciun atestat</h2>
-              <p className="text-gray-500 text-sm">Nu aveți atestate încărcate.</p>
+              <p className="text-gray-500 text-sm">Nu există atestate care să corespundă filtrelor selectate.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -219,7 +282,7 @@ export default function MyAtestate({ user }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {atestate.map((a) => (
+                  {filtered.map((a) => (
                     <tr 
                       key={a.id} 
                       id={`atestat-row-${a.id}`}
