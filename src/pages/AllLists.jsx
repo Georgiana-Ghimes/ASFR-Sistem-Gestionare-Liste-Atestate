@@ -75,7 +75,8 @@ export default function AllLists({ user }) {
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
   const handleDownloadPDF = (listId, numarLista) => {
-    const url = `${window.location.origin.replace(':5173', ':3001')}/api/liste/${listId}/pdf`;
+    const token = localStorage.getItem('token');
+    const url = `${window.location.origin.replace(':5173', ':3001')}/api/liste/${listId}/pdf?token=${token}`;
     window.open(url, '_blank');
   };
 

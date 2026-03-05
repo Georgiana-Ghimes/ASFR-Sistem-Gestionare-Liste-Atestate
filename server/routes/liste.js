@@ -271,9 +271,23 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
 });
 
 // Serve PDF with custom filename
-router.get('/:id/pdf', authenticateToken, async (req, res) => {
+router.get('/:id/pdf', async (req, res) => {
   try {
     const { id } = req.params;
+    const token = req.query.token;
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Token de acces necesar' });
+    }
+    
+    // Verify token
+    let user;
+    try {
+      const jwt = await import('jsonwebtoken');
+      user = jwt.default.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ error: 'Token invalid' });
+    }
     
     // Get list details
     const result = await pool.query(
@@ -288,8 +302,8 @@ router.get('/:id/pdf', authenticateToken, async (req, res) => {
     const lista = result.rows[0];
     
     // Check access rights
-    if (req.user.role !== 'admin') {
-      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+    if (user.role !== 'admin') {
+      const userOrg = user.isf_name || user.cisf_name || user.scsc_name;
       if (lista.isf_name !== userOrg) {
         return res.status(403).json({ error: 'Acces interzis' });
       }
