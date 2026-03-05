@@ -151,7 +151,10 @@ export default function MyAtestate({ user }) {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {atestate.map((a) => (
-                    <tr key={a.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={a.id} className={`transition-colors ${
+                      a.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
+                      'hover:bg-gray-50/50'
+                    }`}>
                       <td className="px-3 py-2 text-xs text-gray-900">{a.numar_atestat}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
                         {new Date(a.data_atestat).toLocaleDateString('ro-RO')}

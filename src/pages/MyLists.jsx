@@ -162,7 +162,10 @@ export default function MyLists({ user }) {
                   </tr>
                 ) : (
                   filtered.map((l) => (
-                    <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={l.id} className={`transition-colors ${
+                      l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
+                      'hover:bg-gray-50/50'
+                    }`}>
                       <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
                       <td className="px-3 py-2"><StatusBadge status={l.status} /></td>

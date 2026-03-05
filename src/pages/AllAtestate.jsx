@@ -307,8 +307,19 @@ export default function AllAtestate({ user }) {
                     </tr>
                   ) : (
                     filtered.map((atestat) => (
-                    <tr key={atestat.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-3 py-3 text-xs text-gray-900">{atestat.organization_name || '-'}</td>
+                    <tr key={atestat.id} className={`transition-colors ${
+                      atestat.status === 'PRIMITA' ? 'bg-yellow-50 hover:bg-yellow-100' : 
+                      atestat.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
+                      'hover:bg-gray-50/50'
+                    }`}>
+                      {atestat.status === 'PRIMITA' && (
+                        <td className="px-3 py-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-yellow-700 bg-yellow-200 border border-yellow-300">
+                            NOU!
+                          </span>
+                        </td>
+                      )}
+                      <td className={`px-3 py-3 text-xs text-gray-900 ${atestat.status === 'PRIMITA' ? '' : 'pl-[52px]'}`}>{atestat.organization_name || '-'}</td>
                       <td className="px-3 py-3 text-xs text-gray-900">{atestat.numar_atestat}</td>
                       <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">
                         {new Date(atestat.data_atestat).toLocaleDateString('ro-RO')}

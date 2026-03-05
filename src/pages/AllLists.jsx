@@ -272,8 +272,19 @@ export default function AllLists({ user }) {
                   </tr>
                 ) : (
                   filtered.map((l) => (
-                    <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-3 py-2 text-xs text-gray-600">{l.isf_name}</td>
+                    <tr key={l.id} className={`transition-colors ${
+                      l.status === 'PRIMITA' ? 'bg-yellow-50 hover:bg-yellow-100' : 
+                      l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
+                      'hover:bg-gray-50/50'
+                    }`}>
+                      {l.status === 'PRIMITA' && (
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-yellow-700 bg-yellow-200 border border-yellow-300">
+                            NOU!
+                          </span>
+                        </td>
+                      )}
+                      <td className={`px-3 py-2 text-xs text-gray-600 ${l.status === 'PRIMITA' ? '' : 'pl-[52px]'}`}>{l.isf_name}</td>
                       <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
                       <td className="px-3 py-2">
