@@ -94,7 +94,7 @@ export default function Login() {
 
         <div className="mt-6 p-4 bg-gray-50 rounded-xl">
           <p className="text-xs text-gray-600 text-center">
-            Autoritatea de Siguranță Feroviară Română
+            Autoritatea de Siguranță Feroviară Română ©
           </p>
         </div>
       </div>

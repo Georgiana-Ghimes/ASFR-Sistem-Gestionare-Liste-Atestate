@@ -94,15 +94,17 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
 
     // Check uniqueness (case-insensitive)
     const existing = await pool.query(
-      'SELECT id, created_date, numar_lista FROM liste_tiparire WHERE UPPER(numar_lista) = $1',
+      'SELECT id, created_date, numar_lista, isf_name, created_by_email FROM liste_tiparire WHERE UPPER(numar_lista) = $1',
       [normalizedNumarLista]
     );
 
     if (existing.rows.length > 0) {
       const existingDate = format(new Date(existing.rows[0].created_date), 'dd.MM.yyyy');
+      const canViewLink = existing.rows[0].created_by_email === req.user.email || req.user.role === 'admin';
+      
       return res.status(400).json({ 
-        error: `Lista cu numărul de comisie ${existing.rows[0].numar_lista} a fost deja încărcată în data de ${existingDate}`,
-        existingId: existing.rows[0].id
+        error: `Lista cu numărul de comisie ${existing.rows[0].numar_lista} a fost deja încărcată în data de ${existingDate} de ${existing.rows[0].isf_name}`,
+        existingId: canViewLink ? existing.rows[0].id : null
       });
     }
 

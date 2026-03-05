@@ -109,15 +109,17 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 
     // Check uniqueness by numar_atestat_format
     const existing = await pool.query(
-      'SELECT id, created_date, numar_atestat_format FROM atestate WHERE numar_atestat_format = $1',
+      'SELECT id, created_date, numar_atestat_format, organization_name, created_by_email FROM atestate WHERE numar_atestat_format = $1',
       [numar_atestat_format.trim()]
     );
 
     if (existing.rows.length > 0) {
       const existingDate = new Date(existing.rows[0].created_date).toLocaleDateString('ro-RO');
+      const canViewLink = existing.rows[0].created_by_email === req.user.email || req.user.role === 'admin';
+      
       return res.status(400).json({ 
-        error: `Atestatul cu nr. ${existing.rows[0].numar_atestat_format} a fost deja încărcat în data de ${existingDate}`,
-        existingId: existing.rows[0].id
+        error: `Atestatul cu nr. ${existing.rows[0].numar_atestat_format} a fost deja încărcat în data de ${existingDate} de ${existing.rows[0].organization_name}`,
+        existingId: canViewLink ? existing.rows[0].id : null
       });
     }
 
