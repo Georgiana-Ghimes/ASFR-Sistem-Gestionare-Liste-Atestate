@@ -75,12 +75,8 @@ export default function AllLists({ user }) {
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
   const handleDownloadPDF = (pdfUrl, filename) => {
-    const link = document.createElement('a');
-    link.href = `${window.location.origin.replace(':5173', ':3001')}${pdfUrl}`;
-    link.download = filename || 'lista.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const url = `${window.location.origin.replace(':5173', ':3001')}${pdfUrl}`;
+    window.open(url, '_blank');
   };
 
   const handleStatusChange = async (id, newStatus) => {
