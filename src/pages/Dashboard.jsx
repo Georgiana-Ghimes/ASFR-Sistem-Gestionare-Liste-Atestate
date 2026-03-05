@@ -3,7 +3,7 @@ import { apiClient } from "@/api/client";
 import StatsCard from "../components/StatsCard";
 import { List, Clock, CheckCircle, Send, Calendar, FileText } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState(
@@ -272,13 +272,14 @@ export default function Dashboard({ user }) {
       for (let R = 0; R <= 9; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-        if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
         
-        worksheet[cellAddress].s.border = {
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' }
+        worksheet[cellAddress].s = {
+          border: {
+            top: { style: 'thin', color: { rgb: "000000" } },
+            bottom: { style: 'thin', color: { rgb: "000000" } },
+            left: { style: 'thin', color: { rgb: "000000" } },
+            right: { style: 'thin', color: { rgb: "000000" } }
+          }
         };
       }
     });
@@ -379,13 +380,14 @@ export default function Dashboard({ user }) {
       for (let R = 0; R <= 5; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-        if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
         
-        worksheet[cellAddress].s.border = {
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' }
+        worksheet[cellAddress].s = {
+          border: {
+            top: { style: 'thin', color: { rgb: "000000" } },
+            bottom: { style: 'thin', color: { rgb: "000000" } },
+            left: { style: 'thin', color: { rgb: "000000" } },
+            right: { style: 'thin', color: { rgb: "000000" } }
+          }
         };
       }
     });
@@ -489,13 +491,14 @@ export default function Dashboard({ user }) {
         for (let R = 0; R <= 9; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
           
-          worksheet[cellAddress].s.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
+          worksheet[cellAddress].s = {
+            border: {
+              top: { style: 'thin', color: { rgb: "000000" } },
+              bottom: { style: 'thin', color: { rgb: "000000" } },
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            }
           };
         }
       });
@@ -582,13 +585,14 @@ export default function Dashboard({ user }) {
         for (let R = 0; R <= 9; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
-          if (!yearWorksheet[cellAddress].s) yearWorksheet[cellAddress].s = {};
           
-          yearWorksheet[cellAddress].s.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
+          yearWorksheet[cellAddress].s = {
+            border: {
+              top: { style: 'thin', color: { rgb: "000000" } },
+              bottom: { style: 'thin', color: { rgb: "000000" } },
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            }
           };
         }
       });
@@ -683,13 +687,14 @@ export default function Dashboard({ user }) {
         for (let R = 0; R <= 5; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
           
-          worksheet[cellAddress].s.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
+          worksheet[cellAddress].s = {
+            border: {
+              top: { style: 'thin', color: { rgb: "000000" } },
+              bottom: { style: 'thin', color: { rgb: "000000" } },
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            }
           };
         }
       });
@@ -768,13 +773,14 @@ export default function Dashboard({ user }) {
         for (let R = 0; R <= 5; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
-          if (!yearWorksheet[cellAddress].s) yearWorksheet[cellAddress].s = {};
           
-          yearWorksheet[cellAddress].s.border = {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
+          yearWorksheet[cellAddress].s = {
+            border: {
+              top: { style: 'thin', color: { rgb: "000000" } },
+              bottom: { style: 'thin', color: { rgb: "000000" } },
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            }
           };
         }
       });
