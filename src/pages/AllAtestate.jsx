@@ -94,13 +94,14 @@ export default function AllAtestate({ user }) {
 
   const handleExport = () => {
     const headers = [
-      "ISF / CISF / SCSC", "Seria", "Data Atestat", "Nume Complet", "Din cadrul", 
+      "ISF / CISF / SCSC", "Seria", "Numărul", "Data Atestat", "Nume Complet", "Din cadrul", 
       "Specialitate", "Status", "Urcat La", "Verificat La", "Trimis La", 
       "Urcat De", "Verificat De", "Trimis De"
     ];
     const rows = filtered.map((a) => [
       a.organization_name || "",
       a.numar_atestat || "",
+      a.numar_atestat_format || "",
       a.data_atestat ? format(new Date(a.data_atestat), "dd.MM.yyyy") : "",
       a.nume_complet || "",
       a.din_cadrul || "",
@@ -131,7 +132,7 @@ export default function AllAtestate({ user }) {
       if (filterOrg && a.organization_name !== filterOrg) return false;
       if (filterFrom && a.created_date < filterFrom) return false;
       if (filterTo && a.created_date > filterTo) return false;
-      if (search && !a.numar_atestat.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !a.numar_atestat_format?.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
 
@@ -214,7 +215,7 @@ export default function AllAtestate({ user }) {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Seria..."
+                  placeholder="Numărul..."
                   className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
               </div>
@@ -288,6 +289,7 @@ export default function AllAtestate({ user }) {
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase"></th>
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Seria</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Numărul</th>
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Data</th>
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Nume</th>
                     <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
@@ -302,7 +304,7 @@ export default function AllAtestate({ user }) {
                 <tbody className="divide-y divide-gray-50">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="px-6 py-16 text-center text-gray-400 text-sm">
+                      <td colSpan="13" className="px-6 py-16 text-center text-gray-400 text-sm">
                         Nu există atestate care să corespundă filtrelor selectate.
                       </td>
                     </tr>
@@ -322,6 +324,7 @@ export default function AllAtestate({ user }) {
                       </td>
                       <td className="px-3 py-3 text-xs text-gray-900 text-center">{atestat.organization_name || '-'}</td>
                       <td className="px-3 py-3 text-xs text-gray-900 text-center">{atestat.numar_atestat}</td>
+                      <td className="px-3 py-3 text-xs text-gray-900 text-center font-bold">{atestat.numar_atestat_format || '-'}</td>
                       <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap text-center">
                         {new Date(atestat.data_atestat).toLocaleDateString('ro-RO')}
                       </td>
@@ -411,23 +414,13 @@ export default function AllAtestate({ user }) {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <div className="text-center py-12">
-            <Award className="w-16 h-16 text-pink-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Baza de Evidență</h2>
-            <p className="text-gray-500 text-sm mb-6">Accesați documentul Google Sheets pentru a edita baza de evidență.</p>
-            <a
-              href="https://docs.google.com/spreadsheets/d/1SE7OeNZ_LjkX1Q6-nFgTAx2tKg6hLy7v/edit?gid=337912100#gid=337912100"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-              </svg>
-              Deschide Baza de Evidență
-            </a>
-          </div>
+        <div className="fixed top-[11rem] left-64 right-0 bottom-0 bg-white z-10">
+          <iframe
+            src="https://docs.google.com/spreadsheets/d/1SE7OeNZ_LjkX1Q6-nFgTAx2tKg6hLy7v/edit?gid=337912100&rm=minimal"
+            className="w-full h-full border-0"
+            title="Baza de Evidență"
+            allow="clipboard-read; clipboard-write"
+          />
         </div>
       )}
     </div>

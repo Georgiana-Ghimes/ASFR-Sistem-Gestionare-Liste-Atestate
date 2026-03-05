@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatsCard from "../components/StatsCard";
-import { List, Clock, CheckCircle, Send, Calendar } from "lucide-react";
+import { List, Clock, CheckCircle, Send, Calendar, FileText } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
+import * as XLSX from 'xlsx';
 
 export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState(
@@ -148,6 +149,262 @@ export default function Dashboard({ user }) {
       };
     });
 
+  const handleGenerateListeReport = () => {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const monthName = months.find(m => m.v === String(currentMonth).padStart(2, "0"))?.l;
+    
+    // Filter lists for current month
+    const currentMonthLists = lists.filter((l) => {
+      if (l.created_date) {
+        const d = new Date(l.created_date);
+        return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+      }
+      return false;
+    });
+
+    const primiteCurrentMonth = currentMonthLists.filter((l) => l.status === "PRIMITA").length;
+    const verificateCurrentMonth = currentMonthLists.filter((l) => l.status === "VERIFICATA").length;
+    const trimiseCurrentMonth = currentMonthLists.filter((l) => l.status === "TRIMISA").length;
+
+    // Calculate totals by tip
+    const totalAutorizatii = currentMonthLists.filter((l) => l.tip === "Autorizatii").length;
+    const totalVize = currentMonthLists.filter((l) => l.tip === "Vize").length;
+    const totalDuplicate = currentMonthLists.filter((l) => l.tip === "Duplicate").length;
+    const totalSchimbareNume = currentMonthLists.filter((l) => l.tip === "Schimbare nume").length;
+
+    // Filter lists sent in current month
+    const trimiseInLuna = lists.filter((l) => {
+      if (l.trimis_at) {
+        const d = new Date(l.trimis_at);
+        return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+      }
+      return false;
+    }).length;
+
+    const headers = ["Indicator", "Valoare"];
+    const rows = [
+      ["Total Liste", currentMonthLists.length],
+      ["Total Autorizații", totalAutorizatii],
+      ["Total Vize", totalVize],
+      ["Total Duplicate", totalDuplicate],
+      ["Total Schimbare nume", totalSchimbareNume],
+      ["Primite", primiteCurrentMonth],
+      ["Verificate", verificateCurrentMonth],
+      ["Trimise", trimiseCurrentMonth],
+      [`Trimise ${monthName}`, trimiseInLuna],
+      ["", ""],
+      ["Generat la", format(new Date(), "dd.MM.yyyy HH:mm")]
+    ];
+
+    const csvContent = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `raport-liste-${monthName.toLowerCase()}-${currentYear}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateAtestateReport = () => {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const monthName = months.find(m => m.v === String(currentMonth).padStart(2, "0"))?.l;
+    
+    // Filter atestate for current month
+    const currentMonthAtestate = atestate.filter((a) => {
+      if (a.created_date) {
+        const d = new Date(a.created_date);
+        return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+      }
+      return false;
+    });
+
+    const primiteCurrentMonth = currentMonthAtestate.filter((a) => a.status === "PRIMITA").length;
+    const verificateCurrentMonth = currentMonthAtestate.filter((a) => a.status === "VERIFICATA").length;
+    const trimiseCurrentMonth = currentMonthAtestate.filter((a) => a.status === "TRIMISA").length;
+
+    const headers = ["Indicator", "Valoare"];
+    const rows = [
+      ["Total Atestate", currentMonthAtestate.length],
+      ["Atestate Primite", primiteCurrentMonth],
+      ["Atestate Verificate", verificateCurrentMonth],
+      ["Atestate Trimise", trimiseCurrentMonth],
+      ["", ""],
+      ["Generat la", format(new Date(), "dd.MM.yyyy HH:mm")]
+    ];
+
+    const csvContent = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `raport-atestate-${monthName.toLowerCase()}-${currentYear}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateListeYearReport = () => {
+    const currentYear = new Date().getFullYear();
+    const workbook = XLSX.utils.book_new();
+
+    // Create a sheet for each month
+    months.forEach((month) => {
+      const monthNum = parseInt(month.v);
+      const monthLists = lists.filter((l) => {
+        if (l.created_date) {
+          const d = new Date(l.created_date);
+          return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+        }
+        return false;
+      });
+
+      const trimiseInLuna = lists.filter((l) => {
+        if (l.trimis_at) {
+          const d = new Date(l.trimis_at);
+          return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+        }
+        return false;
+      }).length;
+
+      const totalAutorizatii = monthLists.filter((l) => l.tip === "Autorizatii").length;
+      const totalVize = monthLists.filter((l) => l.tip === "Vize").length;
+      const totalDuplicate = monthLists.filter((l) => l.tip === "Duplicate").length;
+      const totalSchimbareNume = monthLists.filter((l) => l.tip === "Schimbare nume").length;
+
+      const data = [
+        ["Indicator", "Valoare"],
+        ["Total Liste", monthLists.length],
+        ["Total Autorizații", totalAutorizatii],
+        ["Total Vize", totalVize],
+        ["Total Duplicate", totalDuplicate],
+        ["Total Schimbare nume", totalSchimbareNume],
+        ["Primite", monthLists.filter((l) => l.status === "PRIMITA").length],
+        ["Verificate", monthLists.filter((l) => l.status === "VERIFICATA").length],
+        ["Trimise", monthLists.filter((l) => l.status === "TRIMISA").length],
+        [`Trimise ${month.l}`, trimiseInLuna]
+      ];
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+    });
+
+    // Create total year sheet
+    const yearLists = lists.filter((l) => {
+      if (l.created_date) {
+        const d = new Date(l.created_date);
+        return getYear(d) === currentYear;
+      }
+      return false;
+    });
+
+    const trimiseInAn = lists.filter((l) => {
+      if (l.trimis_at) {
+        const d = new Date(l.trimis_at);
+        return getYear(d) === currentYear;
+      }
+      return false;
+    }).length;
+
+    const totalAutorizatiiAn = yearLists.filter((l) => l.tip === "Autorizatii").length;
+    const totalVizeAn = yearLists.filter((l) => l.tip === "Vize").length;
+    const totalDuplicateAn = yearLists.filter((l) => l.tip === "Duplicate").length;
+    const totalSchimbareNumeAn = yearLists.filter((l) => l.tip === "Schimbare nume").length;
+
+    const yearData = [
+      ["Indicator", "Valoare"],
+      ["Total Liste", yearLists.length],
+      ["Total Autorizații", totalAutorizatiiAn],
+      ["Total Vize", totalVizeAn],
+      ["Total Duplicate", totalDuplicateAn],
+      ["Total Schimbare nume", totalSchimbareNumeAn],
+      ["Primite", yearLists.filter((l) => l.status === "PRIMITA").length],
+      ["Verificate", yearLists.filter((l) => l.status === "VERIFICATA").length],
+      ["Trimise", yearLists.filter((l) => l.status === "TRIMISA").length],
+      [`Trimise ${currentYear}`, trimiseInAn],
+      ["", ""],
+      ["Generat la", format(new Date(), "dd.MM.yyyy HH:mm")]
+    ];
+
+    const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+    XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+
+    // Download the file
+    XLSX.writeFile(workbook, `raport-liste-${currentYear}.xlsx`);
+  };
+
+  const handleGenerateAtestateYearReport = () => {
+    const currentYear = new Date().getFullYear();
+    const workbook = XLSX.utils.book_new();
+
+    // Create a sheet for each month
+    months.forEach((month) => {
+      const monthNum = parseInt(month.v);
+      const monthAtestate = atestate.filter((a) => {
+        if (a.created_date) {
+          const d = new Date(a.created_date);
+          return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+        }
+        return false;
+      });
+
+      const trimiseInLuna = atestate.filter((a) => {
+        if (a.trimis_at) {
+          const d = new Date(a.trimis_at);
+          return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+        }
+        return false;
+      }).length;
+
+      const data = [
+        ["Indicator", "Valoare"],
+        ["Total Atestate", monthAtestate.length],
+        ["Primite", monthAtestate.filter((a) => a.status === "PRIMITA").length],
+        ["Verificate", monthAtestate.filter((a) => a.status === "VERIFICATA").length],
+        ["Trimise", monthAtestate.filter((a) => a.status === "TRIMISA").length],
+        [`Trimise ${month.l}`, trimiseInLuna]
+      ];
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+    });
+
+    // Create total year sheet
+    const yearAtestate = atestate.filter((a) => {
+      if (a.created_date) {
+        const d = new Date(a.created_date);
+        return getYear(d) === currentYear;
+      }
+      return false;
+    });
+
+    const trimiseInAn = atestate.filter((a) => {
+      if (a.trimis_at) {
+        const d = new Date(a.trimis_at);
+        return getYear(d) === currentYear;
+      }
+      return false;
+    }).length;
+
+    const yearData = [
+      ["Indicator", "Valoare"],
+      ["Total Atestate", yearAtestate.length],
+      ["Primite", yearAtestate.filter((a) => a.status === "PRIMITA").length],
+      ["Verificate", yearAtestate.filter((a) => a.status === "VERIFICATA").length],
+      ["Trimise", yearAtestate.filter((a) => a.status === "TRIMISA").length],
+      [`Trimise ${currentYear}`, trimiseInAn],
+      ["", ""],
+      ["Generat la", format(new Date(), "dd.MM.yyyy HH:mm")]
+    ];
+
+    const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+    XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+
+    // Download the file
+    XLSX.writeFile(workbook, `raport-atestate-${currentYear}.xlsx`);
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -248,9 +505,28 @@ export default function Dashboard({ user }) {
           {/* Tab Content */}
           {activeTab === "liste" ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-base font-bold text-gray-900">Statistici Liste per ISF / CISF / SCSC</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Totaluri generale (fără filtru de perioadă), coloana "Trimise lună" respectă perioada selectată.</p>
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Statistici Liste per ISF / CISF / SCSC</h2>
+                </div>
+                {user?.role === 'admin' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGenerateListeReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Generează Raport Luna Curentă
+                    </button>
+                    <button
+                      onClick={handleGenerateListeYearReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Generează Raport Anul Curent
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -308,9 +584,28 @@ export default function Dashboard({ user }) {
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-base font-bold text-gray-900">Statistici Atestate per ISF / CISF / SCSC</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Totaluri generale (fără filtru de perioadă), coloana "Trimise lună" respectă perioada selectată.</p>
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Statistici Atestate per ISF / CISF / SCSC</h2>
+                </div>
+                {user?.role === 'admin' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGenerateAtestateReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Generează Raport Luna Curentă
+                    </button>
+                    <button
+                      onClick={handleGenerateAtestateYearReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Generează Raport Anul Curent
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">

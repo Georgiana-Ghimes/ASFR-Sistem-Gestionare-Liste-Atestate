@@ -289,7 +289,7 @@ export default function AllLists({ user }) {
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.isf_name}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-gray-900 text-center">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs font-bold text-gray-900 text-center">{l.numar_lista}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.tip || "-"}</td>
                       <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>
                       <td className="px-3 py-2 text-center">
