@@ -6,14 +6,14 @@ import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, CheckCircle, Sen
 import { format } from "date-fns";
 
 const COLUMNS = [
-  { label: "Număr Listă", col: "numar_lista" },
+  { label: "Nr. Listă", col: "numar_lista" },
   { label: "ISF", col: "isf_name" },
   { label: "Data", col: "data_lista" },
-  { label: "Nr. Autorizații", col: "numar_autorizatii" },
+  { label: "Nr. Aut.", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
-  { label: "Urcat La", col: "created_date" },
-  { label: "Verificat La", col: "verificat_at" },
-  { label: "Trimis La", col: "trimis_at" },
+  { label: "Urcat", col: "created_date" },
+  { label: "Verificat", col: "verificat_at" },
+  { label: "Trimis", col: "trimis_at" },
   { label: "Acțiuni", col: null },
 ];
 
@@ -166,7 +166,7 @@ export default function AllLists({ user }) {
         </div>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
         >
           <Download className="w-4 h-4" />
           Export CSV
@@ -239,7 +239,7 @@ export default function AllLists({ user }) {
                     <th
                       key={label}
                       onClick={() => handleSort(col)}
-                      className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
+                      className={`px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
                     >
                       <div className="flex items-center gap-1">
                         {label}
@@ -259,36 +259,45 @@ export default function AllLists({ user }) {
                 ) : (
                   filtered.map((l) => (
                     <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">{l.numar_lista}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{l.isf_name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600">{l.isf_name}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
                         {l.data_lista ? format(new Date(l.data_lista), "dd.MM.yyyy") : "-"}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{l.numar_autorizatii}</td>
-                      <td className="px-4 py-3"><StatusBadge status={l.status} /></td>
-                      <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{fmtDate(l.created_date)}</td>
-                      <td className="px-4 py-3 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
+                      <td className="px-3 py-2"><StatusBadge status={l.status} /></td>
+                      <td className="px-3 py-2 text-xs text-gray-400">
+                        {l.created_date ? (
+                          <>
+                            <div>{format(new Date(l.created_date), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.created_date), "HH:mm")}</div>
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400">
                         {l.verificat_at ? (
                           <>
-                            {format(new Date(l.verificat_at), "dd.MM.yyyy HH:mm")}
-                            {l.verificat_by && <div>({l.verificat_by})</div>}
+                            <div>{format(new Date(l.verificat_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.verificat_at), "HH:mm")}</div>
+                            {l.verificat_by && <div className="text-[10px]">({l.verificat_by})</div>}
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400">
                         {l.trimis_at ? (
                           <>
-                            {format(new Date(l.trimis_at), "dd.MM.yyyy HH:mm")}
-                            {l.trimis_by && <div>({l.trimis_by})</div>}
+                            <div>{format(new Date(l.trimis_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.trimis_at), "HH:mm")}</div>
+                            {l.trimis_by && <div className="text-[10px]">({l.trimis_by})</div>}
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-1">
                           {l.pdf_url && (
                             <button
                               onClick={() => setPdfModal({ url: l.pdf_url, filename: l.pdf_filename })}
-                              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                               title="Vizualizare PDF"
                             >
                               <Eye className="w-4 h-4 text-gray-500" />
@@ -298,7 +307,7 @@ export default function AllLists({ user }) {
                             <button
                               onClick={() => handleStatusChange(l, "VERIFICATA")}
                               disabled={updatingId === l.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+                              className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
                             >
                               {updatingId === l.id ? (
                                 <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -312,7 +321,7 @@ export default function AllLists({ user }) {
                             <button
                               onClick={() => handleStatusChange(l, "TRIMISA")}
                               disabled={updatingId === l.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+                              className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
                             >
                               {updatingId === l.id ? (
                                 <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
@@ -326,7 +335,7 @@ export default function AllLists({ user }) {
                             <button
                               onClick={() => handleDelete(l)}
                               disabled={deletingId === l.id}
-                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                              className="p-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
                               title="Șterge listă"
                             >
                               {deletingId === l.id ? (

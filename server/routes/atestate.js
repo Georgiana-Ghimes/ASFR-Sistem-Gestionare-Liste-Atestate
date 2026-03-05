@@ -193,17 +193,25 @@ router.patch('/:id/status', authenticateToken, requireAtestateRole, async (req, 
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    // Set verificat_at and verificat_by when status changes to VERIFICATA
-    // Set trimis_at and trimis_by when status changes to TRIMISA
-    const verificatAt = status === 'VERIFICATA' ? new Date() : null;
-    const verificatBy = status === 'VERIFICATA' ? req.user.email : null;
-    const trimisAt = status === 'TRIMISA' ? new Date() : null;
-    const trimisBy = status === 'TRIMISA' ? req.user.email : null;
+    let updateQuery = 'UPDATE atestate SET status = $1, updated_at = NOW()';
+    const params = [status];
 
-    const result = await pool.query(
-      'UPDATE atestate SET status = $1, verificat_at = COALESCE(verificat_at, $2), verificat_by = COALESCE(verificat_by, $3), trimis_at = COALESCE(trimis_at, $4), trimis_by = COALESCE(trimis_by, $5), updated_at = NOW() WHERE id = $6 RETURNING *',
-      [status, verificatAt, verificatBy, trimisAt, trimisBy, id]
-    );
+    // Always update timestamp and user when changing to a status
+    if (status === 'VERIFICATA') {
+      updateQuery += ', verificat_at = NOW(), verificat_by = $2';
+      params.push(req.user.email);
+    } else if (status === 'TRIMISA') {
+      updateQuery += ', trimis_at = NOW(), trimis_by = $2';
+      params.push(req.user.email);
+    } else if (status === 'PRIMITA') {
+      // Clear verificat and trimis when going back to PRIMITA
+      updateQuery += ', verificat_at = NULL, verificat_by = NULL, trimis_at = NULL, trimis_by = NULL';
+    }
+
+    updateQuery += ` WHERE id = $${params.length + 1} RETURNING *`;
+    params.push(id);
+
+    const result = await pool.query(updateQuery, params);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Atestat not found' });

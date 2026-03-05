@@ -89,6 +89,37 @@ export default function AllAtestate({ user }) {
     }
   };
 
+  const handleExport = () => {
+    const headers = [
+      "ISF / CISF / SCSC", "Seria", "Data Atestat", "Nume Complet", "Din cadrul", 
+      "Specialitate", "Status", "Urcat La", "Verificat La", "Trimis La", 
+      "Urcat De", "Verificat De", "Trimis De"
+    ];
+    const rows = atestate.map((a) => [
+      a.organization_name || "",
+      a.numar_atestat || "",
+      a.data_atestat ? format(new Date(a.data_atestat), "dd.MM.yyyy") : "",
+      a.nume_complet || "",
+      a.din_cadrul || "",
+      a.functie || "",
+      a.status || "",
+      a.created_date ? format(new Date(a.created_date), "dd.MM.yyyy HH:mm") : "",
+      a.verificat_at ? format(new Date(a.verificat_at), "dd.MM.yyyy HH:mm") : "",
+      a.trimis_at ? format(new Date(a.trimis_at), "dd.MM.yyyy HH:mm") : "",
+      a.created_by_email || "",
+      a.verificat_by || "",
+      a.trimis_by || "",
+    ]);
+    const csvContent = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `atestate-export-${format(new Date(), "yyyyMMdd-HHmm")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const fmtDate = (dt) => dt ? format(new Date(dt), "dd.MM.yyyy HH:mm") : "-";
 
   if (!user || user.role !== 'admin') {
@@ -103,13 +134,24 @@ export default function AllAtestate({ user }) {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Award className="w-8 h-8 text-pink-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Administrare Atestate</h1>
+    <div className="p-8">
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Award className="w-8 h-8 text-pink-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Administrare Atestate</h1>
+          </div>
+          <p className="text-gray-500 text-sm">Vizualizare și gestionare toate atestatele</p>
         </div>
-        <p className="text-gray-500 text-sm">Vizualizare și gestionare toate atestatele</p>
+        {activeTab === "lista" && (
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -160,36 +202,36 @@ export default function AllAtestate({ user }) {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Seria</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data Atestat</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nume Complet</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Specialitate</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Urcat La</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Verificat La</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Trimis La</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Seria</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nume</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Specialitate</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Urcat</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Verificat</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Trimis</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {atestate.map((atestat) => (
                     <tr key={atestat.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 text-sm text-gray-900">{atestat.organization_name || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{atestat.numar_atestat}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-3 py-3 text-xs text-gray-900">{atestat.organization_name || '-'}</td>
+                      <td className="px-3 py-3 text-xs text-gray-900">{atestat.numar_atestat}</td>
+                      <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">
                         {new Date(atestat.data_atestat).toLocaleDateString('ro-RO')}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{atestat.nume_complet}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{atestat.din_cadrul}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{atestat.functie}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 text-xs text-gray-900">{atestat.nume_complet}</td>
+                      <td className="px-3 py-3 text-xs text-gray-600">{atestat.din_cadrul}</td>
+                      <td className="px-3 py-3 text-xs text-gray-600">{atestat.functie}</td>
+                      <td className="px-3 py-3">
                         {canEditStatus ? (
                           <select
                             value={atestat.status || 'PRIMITA'}
                             onChange={(e) => handleStatusChange(atestat.id, e.target.value)}
-                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-pink-500"
                           >
                             <option value="PRIMITA">PRIMITĂ</option>
                             <option value="VERIFICATA">VERIFICATĂ</option>
@@ -199,32 +241,35 @@ export default function AllAtestate({ user }) {
                           <StatusBadge status={atestat.status || 'PRIMITA'} />
                         )}
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-pre-line">
+                      <td className="px-3 py-3 text-xs text-gray-400">
                         {atestat.created_date ? (
                           <>
-                            {format(new Date(atestat.created_date), "dd.MM.yyyy HH:mm")}
-                            {atestat.created_by_email && <div>({atestat.created_by_email})</div>}
+                            <div>{format(new Date(atestat.created_date), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(atestat.created_date), "HH:mm")}</div>
+                            {atestat.created_by_email && <div className="text-[10px]">({atestat.created_by_email})</div>}
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400">
+                      <td className="px-3 py-3 text-xs text-gray-400">
                         {atestat.verificat_at ? (
                           <>
-                            {format(new Date(atestat.verificat_at), "dd.MM.yyyy HH:mm")}
-                            {atestat.verificat_by && <div>({atestat.verificat_by})</div>}
+                            <div>{format(new Date(atestat.verificat_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(atestat.verificat_at), "HH:mm")}</div>
+                            {atestat.verificat_by && <div className="text-[10px]">({atestat.verificat_by})</div>}
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400">
+                      <td className="px-3 py-3 text-xs text-gray-400">
                         {atestat.trimis_at ? (
                           <>
-                            {format(new Date(atestat.trimis_at), "dd.MM.yyyy HH:mm")}
-                            {atestat.trimis_by && <div>({atestat.trimis_by})</div>}
+                            <div>{format(new Date(atestat.trimis_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(atestat.trimis_at), "HH:mm")}</div>
+                            {atestat.trimis_by && <div className="text-[10px]">({atestat.trimis_by})</div>}
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleDownload(atestat.id, atestat.numar_atestat)}
                             disabled={downloading === atestat.id}

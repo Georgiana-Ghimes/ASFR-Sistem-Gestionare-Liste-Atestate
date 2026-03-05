@@ -129,39 +129,30 @@ router.patch('/:id/status', authenticateToken, requireRole('cisf', 'admin'), asy
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    // Get current list
-    const current = await pool.query('SELECT * FROM liste_tiparire WHERE id = $1', [id]);
-    if (current.rows.length === 0) {
-      return res.status(404).json({ error: 'List not found' });
-    }
-
-    const currentStatus = current.rows[0].status;
-
-    // Validate transitions
-    const validTransitions = {
-      'PRIMITA': 'VERIFICATA',
-      'VERIFICATA': 'TRIMISA'
-    };
-
-    if (validTransitions[currentStatus] !== status) {
-      return res.status(400).json({ error: 'Invalid status transition' });
-    }
-
     let updateQuery = 'UPDATE liste_tiparire SET status = $1, updated_at = CURRENT_TIMESTAMP';
     const params = [status];
 
+    // Always update timestamp and user when changing to a status
     if (status === 'VERIFICATA') {
       updateQuery += ', verificat_at = CURRENT_TIMESTAMP, verificat_by = $2';
       params.push(req.user.email);
     } else if (status === 'TRIMISA') {
       updateQuery += ', trimis_at = CURRENT_TIMESTAMP, trimis_by = $2';
       params.push(req.user.email);
+    } else if (status === 'PRIMITA') {
+      // Clear verificat and trimis when going back to PRIMITA
+      updateQuery += ', verificat_at = NULL, verificat_by = NULL, trimis_at = NULL, trimis_by = NULL';
     }
 
     updateQuery += ` WHERE id = $${params.length + 1} RETURNING *`;
     params.push(id);
 
     const result = await pool.query(updateQuery, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'List not found' });
+    }
+    
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update status error:', error);
