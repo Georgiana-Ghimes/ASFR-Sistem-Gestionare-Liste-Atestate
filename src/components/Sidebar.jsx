@@ -27,12 +27,8 @@ export default function Sidebar({ user }) {
       { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Administrare Liste", path: "/all-lists", icon: List },
       { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
-      ...(hasAtestateRole
-        ? [
-            { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
-            { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
-          ]
-        : []),
+      { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
+      { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge },
       { label: "Setări", path: "/settings", icon: Settings }
     ];
   } else if (isRegularUser) {

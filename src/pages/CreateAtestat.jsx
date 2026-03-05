@@ -7,6 +7,8 @@ export default function CreateAtestat({ user }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     numar_atestat: "",
+    numar_atestat_number: "",
+    numar_atestat_year: "",
     data_atestat: "",
     nume_complet: "",
     din_cadrul: "",
@@ -116,6 +118,19 @@ export default function CreateAtestat({ user }) {
 
     if (!form.organization_type || !form.organization_name) { setError("ISF / CISF / SCSC este obligatoriu."); return; }
     if (!form.numar_atestat.trim()) { setError("Seria este obligatorie."); return; }
+    if (!form.numar_atestat_number.trim()) { setError("Numărul este obligatoriu."); return; }
+    if (!form.numar_atestat_year.trim()) { setError("Anul este obligatoriu."); return; }
+    
+    // Validate number and year are numeric
+    if (!/^\d+$/.test(form.numar_atestat_number.trim())) {
+      setError("Numărul trebuie să fie numeric.");
+      return;
+    }
+    if (!/^\d{4}$/.test(form.numar_atestat_year.trim())) {
+      setError("Anul trebuie să fie format din 4 cifre.");
+      return;
+    }
+    
     if (!form.data_atestat) { setError("Data atestatului / Procesului Verbal este obligatorie."); return; }
     if (!form.nume_complet.trim()) { setError("Numele complet este obligatoriu."); return; }
     if (!form.din_cadrul.trim()) { setError("Câmpul 'Din cadrul' este obligatoriu."); return; }
@@ -132,6 +147,7 @@ export default function CreateAtestat({ user }) {
       formData.append('organization_type', form.organization_type);
       formData.append('organization_name', form.organization_name);
       formData.append('numar_atestat', form.numar_atestat.trim());
+      formData.append('numar_atestat_format', `${form.numar_atestat_number.trim()}/${form.numar_atestat_year.trim()}`);
       formData.append('data_atestat', form.data_atestat);
       formData.append('nume_complet', form.nume_complet.trim());
       formData.append('din_cadrul', form.din_cadrul.trim());
@@ -181,8 +197,8 @@ export default function CreateAtestat({ user }) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+        <div className="grid grid-cols-1 gap-6">
+          <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               ISF / CISF / SCSC <span className="text-red-500">*</span>
             </label>
@@ -213,17 +229,45 @@ export default function CreateAtestat({ user }) {
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Seria <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.numar_atestat}
-              onChange={(e) => setForm({ ...form, numar_atestat: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: ISF4/42 Nr. 29"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Seria <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.numar_atestat}
+                onChange={(e) => setForm({ ...form, numar_atestat: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                placeholder="ex: ISF4/42 Nr. 29"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Numărul <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={form.numar_atestat_number}
+                  onChange={(e) => setForm({ ...form, numar_atestat_number: e.target.value })}
+                  className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                  placeholder="67"
+                  min="1"
+                />
+                <span className="text-gray-400 font-bold flex-shrink-0">/</span>
+                <input
+                  type="number"
+                  value={form.numar_atestat_year}
+                  onChange={(e) => setForm({ ...form, numar_atestat_year: e.target.value })}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                  placeholder="2026"
+                  min="2000"
+                  max="2100"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
@@ -238,7 +282,7 @@ export default function CreateAtestat({ user }) {
             />
           </div>
 
-          <div className="sm:col-span-2">
+          <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Nume Complet <span className="text-red-500">*</span>
             </label>
@@ -251,30 +295,32 @@ export default function CreateAtestat({ user }) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Din cadrul <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.din_cadrul}
-              onChange={(e) => setForm({ ...form, din_cadrul: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: VIA TERRA SPEDITION SRL"
-            />
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Din cadrul <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.din_cadrul}
+                onChange={(e) => setForm({ ...form, din_cadrul: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                placeholder="ex: VIA TERRA SPEDITION SRL"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Specialitate <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.functie}
-              onChange={(e) => setForm({ ...form, functie: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              placeholder="ex: Tracțiune"
-            />
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Specialitate <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.functie}
+                onChange={(e) => setForm({ ...form, functie: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                placeholder="ex: Tracțiune"
+              />
+            </div>
           </div>
         </div>
 

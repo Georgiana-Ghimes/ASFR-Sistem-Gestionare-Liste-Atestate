@@ -89,10 +89,16 @@ router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, r
 // Create new atestat
 router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 20), async (req, res) => {
   try {
-    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, organization_type, organization_name } = req.body;
+    const { numar_atestat, numar_atestat_format, data_atestat, nume_complet, din_cadrul, functie, organization_type, organization_name } = req.body;
 
-    if (!numar_atestat || !data_atestat || !nume_complet || !din_cadrul || !functie || !organization_type || !organization_name) {
+    if (!numar_atestat || !numar_atestat_format || !data_atestat || !nume_complet || !din_cadrul || !functie || !organization_type || !organization_name) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate format: number/year
+    const formatRegex = /^\d+\/\d{4}$/;
+    if (!formatRegex.test(numar_atestat_format.trim())) {
+      return res.status(400).json({ error: 'Numărul trebuie să fie în formatul: număr/an (ex: 67/2026)' });
     }
 
     // Check if at least one file is uploaded
@@ -100,14 +106,15 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
       return res.status(400).json({ error: 'At least one file is required' });
     }
 
-    // Check uniqueness
+    // Check uniqueness by numar_atestat_format
     const existing = await pool.query(
-      'SELECT id FROM atestate WHERE numar_atestat = $1',
-      [numar_atestat]
+      'SELECT id, created_date FROM atestate WHERE numar_atestat_format = $1',
+      [numar_atestat_format.trim()]
     );
 
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'Numărul atestatului există deja' });
+      const existingDate = new Date(existing.rows[0].created_date).toLocaleDateString('ro-RO');
+      return res.status(400).json({ error: `Atestatul a fost deja încărcat în data de ${existingDate}` });
     }
 
     // Get file paths (up to 3 files for backward compatibility)
@@ -127,13 +134,14 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 
     const result = await pool.query(
       `INSERT INTO atestate 
-       (numar_atestat, data_atestat, nume_complet, din_cadrul, functie, 
+       (numar_atestat, numar_atestat_format, data_atestat, nume_complet, din_cadrul, functie, 
         pdf1_url, pdf1_filename, pdf2_url, pdf2_filename, pdf3_url, pdf3_filename,
         all_files, created_by_email, organization_type, organization_name) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
        RETURNING *`,
       [
         numar_atestat,
+        numar_atestat_format.trim(),
         data_atestat,
         nume_complet,
         din_cadrul,

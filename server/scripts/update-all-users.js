@@ -88,7 +88,7 @@ const users = [
     email: 'georgianaghimes@sigurantaferoviara.ro',
     password: 'GhGeo2026!',
     role: 'admin',
-    has_atestate_role: true
+    has_atestate_role: false
   }
 ];
 

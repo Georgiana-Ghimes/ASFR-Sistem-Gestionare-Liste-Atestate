@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
-import { AlertCircle, Settings as SettingsIcon, Users, Plus, Edit2, Trash2, Save, X, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Settings as SettingsIcon, Users, Plus, Edit2, Trash2, Save, X, Eye, EyeOff, Star } from "lucide-react";
 
 export default function Settings({ user }) {
   const [users, setUsers] = useState([]);
@@ -30,7 +30,23 @@ export default function Settings({ user }) {
     try {
       setLoading(true);
       const data = await apiClient.getAllUsers();
-      setUsers(data);
+      
+      // Sort users: georgiana.ghimes first, then other admins, then by role
+      const sortedUsers = data.sort((a, b) => {
+        // Georgiana is always first
+        if (a.email === 'georgiana.ghimes@sigurantaferoviara.ro') return -1;
+        if (b.email === 'georgiana.ghimes@sigurantaferoviara.ro') return 1;
+        
+        // Then other admins
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (b.role === 'admin' && a.role !== 'admin') return 1;
+        
+        // Then by role
+        const roleOrder = { admin: 0, cisf: 1, isf: 2, scsc: 3 };
+        return roleOrder[a.role] - roleOrder[b.role];
+      });
+      
+      setUsers(sortedUsers);
     } catch (error) {
       showNotification('error', 'Eroare la încărcarea utilizatorilor');
     } finally {
@@ -265,7 +281,9 @@ export default function Settings({ user }) {
                 {users.map((u) => {
                   const isEditing = editingUser?.id === u.id;
                   return (
-                    <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={u.id} className={`transition-colors ${
+                      u.role === 'admin' ? 'bg-purple-50/30 hover:bg-purple-50/50' : 'hover:bg-gray-50/50'
+                    }`}>
                       <td className="px-6 py-4">
                         {isEditing ? (
                           <input
@@ -275,7 +293,12 @@ export default function Settings({ user }) {
                             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm w-full"
                           />
                         ) : (
-                          <span className="text-sm text-gray-900">{u.email}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-900">{u.email}</span>
+                            {u.email === 'georgiana.ghimes@sigurantaferoviara.ro' && (
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Administrator Suprem" />
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -363,21 +386,37 @@ export default function Settings({ user }) {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false })}
-                              className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
-                              title="Editează"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            {u.id !== user.id && (
+                            {/* Only georgiana.ghimes can edit admins, everyone can edit non-admins */}
+                            {(user.email === 'georgiana.ghimes@sigurantaferoviara.ro' || u.role !== 'admin') && (
                               <button
-                                onClick={() => handleDeleteUser(u.id, u.email)}
-                                className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
-                                title="Șterge"
+                                onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false })}
+                                className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                                title="Editează"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Edit2 className="w-4 h-4" />
                               </button>
+                            )}
+                            {/* Only georgiana.ghimes can delete admins, and no one can delete themselves */}
+                            {u.id !== user.id && (
+                              user.email === 'georgiana.ghimes@sigurantaferoviara.ro' ? (
+                                // Georgiana can delete anyone except herself
+                                <button
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                                  title="Șterge"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              ) : u.role !== 'admin' ? (
+                                // Other admins can only delete non-admin users
+                                <button
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                                  title="Șterge"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              ) : null
                             )}
                           </div>
                         )}
