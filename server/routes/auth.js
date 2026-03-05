@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { logAudit } from '../middleware/audit.js';
 
 const router = express.Router();
 
@@ -44,6 +45,16 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Audit log
+    await logAudit(
+      user.email,
+      'LOGIN',
+      'auth',
+      user.id,
+      { role: user.role },
+      req.ip
+    );
+
     res.json({
       token,
       user: {
@@ -76,6 +87,25 @@ router.get('/me', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'LOGOUT',
+      'auth',
+      req.user.id,
+      { role: req.user.role },
+      req.ip
+    );
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

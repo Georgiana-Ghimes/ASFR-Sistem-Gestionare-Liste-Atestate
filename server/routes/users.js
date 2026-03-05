@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { pool } from '../db.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { logAudit } from '../middleware/audit.js';
 
 const router = express.Router();
 
@@ -93,6 +94,16 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
       ]
     );
 
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'CREATE_USER',
+      'users',
+      result.rows[0].id,
+      { email, role, isf_name, cisf_name, scsc_name },
+      req.ip
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create user error:', error);
@@ -181,6 +192,16 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'UPDATE_USER',
+      'users',
+      id,
+      { email, role, updated_fields: Object.keys(req.body) },
+      req.ip
+    );
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update user error:', error);
@@ -210,7 +231,17 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
       return res.status(403).json({ error: 'Only the supreme administrator can delete admin users' });
     }
 
-    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, email', [id]);
+
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'DELETE_USER',
+      'users',
+      id,
+      { deleted_email: userToDelete.rows[0].email, deleted_role: userToDelete.rows[0].role },
+      req.ip
+    );
 
     res.json({ message: 'User deleted successfully' });
   } catch (error) {

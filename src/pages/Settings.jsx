@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
-import { AlertCircle, Settings as SettingsIcon, Users, Plus, Edit2, Trash2, Save, X, Eye, EyeOff, Star } from "lucide-react";
+import { AlertCircle, Settings as SettingsIcon, Users, Plus, Edit2, Trash2, Save, X, Eye, EyeOff, Star, Download } from "lucide-react";
 
 export default function Settings({ user }) {
+  const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [selectedAudits, setSelectedAudits] = useState([]);
+  const [auditLimit, setAuditLimit] = useState(50);
+  const [auditPage, setAuditPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -22,9 +28,13 @@ export default function Settings({ user }) {
 
   useEffect(() => {
     if (user?.role === 'admin') {
-      loadUsers();
+      if (activeTab === 'users') {
+        loadUsers();
+      } else if (activeTab === 'audit') {
+        loadAuditLogs();
+      }
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   const loadUsers = async () => {
     try {
@@ -51,6 +61,53 @@ export default function Settings({ user }) {
       showNotification('error', 'Eroare la încărcarea utilizatorilor');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAuditLogs = async () => {
+    try {
+      setLoading(true);
+      const offset = (auditPage - 1) * auditLimit;
+      const data = await apiClient.getAuditLogs({ limit: auditLimit, offset });
+      setAuditLogs(data.logs);
+      setAuditTotal(data.total);
+      setSelectedAudits([]);
+    } catch (error) {
+      showNotification('error', 'Eroare la încărcarea jurnalului de audit');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'audit') {
+      loadAuditLogs();
+    }
+  }, [auditLimit, auditPage]);
+
+  const handleDeleteSelectedAudits = async () => {
+    if (!confirm(`Sigur doriți să ștergeți ${selectedAudits.length} înregistrări selectate?`)) return;
+    
+    try {
+      await apiClient.deleteAudits(selectedAudits);
+      showNotification('success', `${selectedAudits.length} înregistrări șterse`);
+      loadAuditLogs();
+    } catch (error) {
+      showNotification('error', 'Eroare la ștergerea înregistrărilor');
+    }
+  };
+
+  const toggleAuditSelection = (id) => {
+    setSelectedAudits(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAllAudits = () => {
+    if (selectedAudits.length === auditLogs.length) {
+      setSelectedAudits([]);
+    } else {
+      setSelectedAudits(auditLogs.map(log => log.id));
     }
   };
 
@@ -147,8 +204,38 @@ export default function Settings({ user }) {
         </div>
       )}
 
-      {/* Add User Form */}
-      {showAddForm && (
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'users'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Utilizatori
+            </button>
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'audit'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Jurnal Audit
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {activeTab === 'users' ? (
+        <>
+          {/* Add User Form */}
+          {showAddForm && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-bold text-gray-900">Adaugă Utilizator Nou</h2>
@@ -429,6 +516,164 @@ export default function Settings({ user }) {
           </div>
         )}
       </div>
+        </>
+      ) : (
+        /* Audit Log Tab */
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Jurnal Audit ({auditTotal})</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Toate acțiunile importante din aplicație</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedAudits.length > 0 && (
+                <button
+                  onClick={handleDeleteSelectedAudits}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors text-sm font-semibold"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Șterge ({selectedAudits.length}) Audituri
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  const headers = ["Data & Ora", "Utilizator", "Acțiune", "Entitate"];
+                  const rows = auditLogs.map((log) => [
+                    new Date(log.created_at).toLocaleString('ro-RO', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    }),
+                    log.user_email,
+                    log.action_type,
+                    log.entity_type
+                  ]);
+                  const csvContent = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+                  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-semibold"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500 font-semibold">Vizualizează:</label>
+              <select
+                value={auditLimit}
+                onChange={(e) => {
+                  setAuditLimit(parseInt(e.target.value));
+                  setAuditPage(1);
+                }}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={10}>10 intrări</option>
+                <option value={50}>50 intrări</option>
+                <option value={100}>100 intrări</option>
+                <option value={500}>500 intrări</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAuditPage(p => Math.max(1, p - 1))}
+                disabled={auditPage === 1}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Anterior
+              </button>
+              <span className="text-xs text-gray-600">
+                Pagina {auditPage} din {Math.ceil(auditTotal / auditLimit)}
+              </span>
+              <button
+                onClick={() => setAuditPage(p => p + 1)}
+                disabled={auditPage >= Math.ceil(auditTotal / auditLimit)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Următor
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                      <input
+                        type="checkbox"
+                        checked={selectedAudits.length === auditLogs.length && auditLogs.length > 0}
+                        onChange={toggleAllAudits}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Data & Ora</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Utilizator</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiune</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Entitate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {auditLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        Nu există înregistrări în jurnalul de audit.
+                      </td>
+                    </tr>
+                  ) : (
+                    auditLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedAudits.includes(log.id)}
+                            onChange={() => toggleAuditSelection(log.id)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {new Date(log.created_at).toLocaleString('ro-RO', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{log.user_email}</td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            {log.action_type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{log.entity_type}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

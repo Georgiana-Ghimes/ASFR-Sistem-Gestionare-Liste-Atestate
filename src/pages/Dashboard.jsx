@@ -257,7 +257,7 @@ export default function Dashboard({ user }) {
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
                       {["ISF / CISF / SCSC", "Total Liste", "Total Autorizații", "Total Vize", "Total Duplicate", "Total Schimbare nume", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
-                        <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
                       ))}
@@ -266,35 +266,35 @@ export default function Dashboard({ user }) {
                   <tbody className="divide-y divide-gray-50">
                     {isfStats.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        <td colSpan={10} className="px-6 py-12 text-center text-gray-400 text-sm">
                           Nu există date disponibile.
                         </td>
                       </tr>
                     ) : (
                       isfStats.map((row) => (
                         <tr key={row.isf_name} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-900">{row.isf_name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.total}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalAutorizatii}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalVize}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalDuplicate}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.totalSchimbareNume}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">{row.isf_name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.totalAutorizatii}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.totalVize}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.totalDuplicate}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.totalSchimbareNume}</td>
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                               {row.primita}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                               {row.verificata}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
                               {row.trimisa}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800">
                               {row.trimisaLuna}
                             </span>
@@ -317,7 +317,7 @@ export default function Dashboard({ user }) {
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
                       {["ISF / CISF / SCSC", "Total Atestate", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
-                        <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                        <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
                       ))}
@@ -333,24 +333,24 @@ export default function Dashboard({ user }) {
                     ) : (
                       atestateStats.map((row) => (
                         <tr key={row.organization_name} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-900">{row.organization_name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{row.total}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">{row.organization_name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                               {row.primita}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                               {row.verificata}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
                               {row.trimisa}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800">
                               {row.trimisaLuna}
                             </span>

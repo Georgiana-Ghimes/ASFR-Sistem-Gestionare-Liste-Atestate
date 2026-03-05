@@ -6,6 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { pool } from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { logAudit } from '../middleware/audit.js';
 
 const router = express.Router();
 
@@ -159,6 +160,16 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
       ]
     );
 
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'CREATE_ATESTAT',
+      'atestate',
+      result.rows[0].id,
+      { numar_atestat, numar_atestat_format: numar_atestat_format.trim(), nume_complet, organization_name },
+      req.ip
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create atestat error:', error);
@@ -177,11 +188,21 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
     const { id } = req.params;
 
-    const result = await pool.query('DELETE FROM atestate WHERE id = $1 RETURNING id', [id]);
+    const result = await pool.query('DELETE FROM atestate WHERE id = $1 RETURNING id, numar_atestat', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Atestat not found' });
     }
+
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'DELETE_ATESTAT',
+      'atestate',
+      id,
+      { numar_atestat: result.rows[0].numar_atestat },
+      req.ip
+    );
 
     res.json({ message: 'Atestat deleted successfully' });
   } catch (error) {
@@ -228,6 +249,16 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Atestat not found' });
     }
+
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'UPDATE_STATUS',
+      'atestate',
+      id,
+      { new_status: status },
+      req.ip
+    );
 
     res.json(result.rows[0]);
   } catch (error) {

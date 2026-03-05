@@ -30,8 +30,12 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const logout = () => {
-    apiClient.logout();
+  const logout = async () => {
+    try {
+      await apiClient.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     setUser(null);
   };
 

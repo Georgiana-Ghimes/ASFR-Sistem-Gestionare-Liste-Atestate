@@ -4,6 +4,7 @@ import path from 'path';
 import { format } from 'date-fns';
 import { pool } from '../db.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { logAudit } from '../middleware/audit.js';
 
 const router = express.Router();
 
@@ -117,6 +118,16 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
       ]
     );
 
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'CREATE_LISTA',
+      'liste_tiparire',
+      result.rows[0].id,
+      { numar_lista, tip, isf_name, numar_autorizatii },
+      req.ip
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create list error:', error);
@@ -157,6 +168,16 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'List not found' });
     }
+    
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'UPDATE_STATUS',
+      'liste_tiparire',
+      id,
+      { old_status: result.rows[0].status, new_status: status },
+      req.ip
+    );
     
     res.json(result.rows[0]);
   } catch (error) {
@@ -215,11 +236,21 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   try {
     const { id } = req.params;
 
-    const result = await pool.query('DELETE FROM liste_tiparire WHERE id = $1 RETURNING id', [id]);
+    const result = await pool.query('DELETE FROM liste_tiparire WHERE id = $1 RETURNING id, numar_lista', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'List not found' });
     }
+
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'DELETE_LISTA',
+      'liste_tiparire',
+      id,
+      { numar_lista: result.rows[0].numar_lista },
+      req.ip
+    );
 
     res.json({ message: 'List deleted successfully' });
   } catch (error) {

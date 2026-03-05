@@ -69,7 +69,15 @@ class ApiClient {
   }
 
   logout() {
+    // Call logout endpoint before clearing token
+    const logoutPromise = this.token 
+      ? this.request('/auth/logout', { method: 'POST' }).catch(err => {
+          console.error('Logout audit error:', err);
+        })
+      : Promise.resolve();
+    
     this.setToken(null);
+    return logoutPromise;
   }
 
   // Liste
@@ -158,6 +166,25 @@ class ApiClient {
     return this.request(`/atestate/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
+    });
+  }
+
+  // Audit
+  async getAuditLogs(params = {}) {
+    const queryParams = new URLSearchParams(params).toString();
+    return this.request(`/audit${queryParams ? '?' + queryParams : ''}`);
+  }
+
+  async deleteAllAudits() {
+    return this.request('/audit/all', {
+      method: 'DELETE'
+    });
+  }
+
+  async deleteAudits(ids) {
+    return this.request('/audit', {
+      method: 'DELETE',
+      body: JSON.stringify({ ids })
     });
   }
 }
