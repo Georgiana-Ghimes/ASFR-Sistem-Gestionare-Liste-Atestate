@@ -76,10 +76,23 @@ router.get('/', authenticateToken, requireAtestateRole, async (req, res) => {
 // Get user's atestate
 router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM atestate WHERE created_by_email = $1 ORDER BY created_date DESC',
-      [req.user.email]
-    );
+    let query = 'SELECT * FROM atestate WHERE ';
+    const params = [];
+    
+    if (req.user.role === 'admin') {
+      // Admin sees only what they uploaded themselves
+      query += 'created_by_email = $1';
+      params.push(req.user.email);
+    } else {
+      // ISF/CISF/SCSC users see atestate uploaded by them OR uploaded for their organization
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      query += '(created_by_email = $1 OR organization_name = $2)';
+      params.push(req.user.email, userOrg);
+    }
+    
+    query += ' ORDER BY created_date DESC';
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Get my atestate error:', error);
@@ -115,7 +128,10 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 
     if (existing.rows.length > 0) {
       const existingDate = new Date(existing.rows[0].created_date).toLocaleDateString('ro-RO');
-      const canViewLink = existing.rows[0].created_by_email === req.user.email || req.user.role === 'admin';
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      const canViewLink = existing.rows[0].created_by_email === req.user.email || 
+                          req.user.role === 'admin' || 
+                          existing.rows[0].organization_name === userOrg;
       
       return res.status(400).json({ 
         error: `Atestatul cu nr. ${existing.rows[0].numar_atestat_format} a fost deja încărcat în data de ${existingDate} de ${existing.rows[0].organization_name}`,

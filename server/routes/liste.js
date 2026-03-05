@@ -100,7 +100,10 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
 
     if (existing.rows.length > 0) {
       const existingDate = format(new Date(existing.rows[0].created_date), 'dd.MM.yyyy');
-      const canViewLink = existing.rows[0].created_by_email === req.user.email || req.user.role === 'admin';
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      const canViewLink = existing.rows[0].created_by_email === req.user.email || 
+                          req.user.role === 'admin' || 
+                          existing.rows[0].isf_name === userOrg;
       
       return res.status(400).json({ 
         error: `Lista cu numărul de comisie ${existing.rows[0].numar_lista} a fost deja încărcată în data de ${existingDate} de ${existing.rows[0].isf_name}`,
