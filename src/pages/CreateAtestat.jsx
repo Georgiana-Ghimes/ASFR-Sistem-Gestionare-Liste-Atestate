@@ -11,7 +11,6 @@ export default function CreateAtestat({ user }) {
     nume_complet: "",
     din_cadrul: "",
     functie: "",
-    observatii: "",
     organization_type: "",
     organization_name: "",
   });
@@ -137,7 +136,6 @@ export default function CreateAtestat({ user }) {
       formData.append('nume_complet', form.nume_complet.trim());
       formData.append('din_cadrul', form.din_cadrul.trim());
       formData.append('functie', form.functie.trim());
-      formData.append('observatii', form.observatii || '');
       
       // Append all files
       pdfFiles.forEach((file) => {
@@ -314,17 +312,6 @@ export default function CreateAtestat({ user }) {
               </div>
             )}
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Observații</label>
-          <textarea
-            value={form.observatii}
-            onChange={(e) => setForm({ ...form, observatii: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition resize-none"
-            placeholder="Observații opționale..."
-          />
         </div>
 
         <div className="flex justify-end pt-2">

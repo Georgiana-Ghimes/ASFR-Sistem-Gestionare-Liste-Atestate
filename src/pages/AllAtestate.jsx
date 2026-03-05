@@ -17,8 +17,6 @@ export default function AllAtestate({ user }) {
   const [search, setSearch] = useState("");
 
   const isGeorgiana = user?.email === 'georgiana.ghimes@sigurantaferoviara.ro';
-  const isCecilia = user?.email === 'cecilia.mihaila@sigurantaferoviara.ro';
-  const canEditStatus = isGeorgiana || isCecilia;
 
   useEffect(() => {
     if (activeTab === "lista") {
@@ -318,8 +316,8 @@ export default function AllAtestate({ user }) {
                       <td className="px-3 py-3 text-xs text-gray-900">{atestat.nume_complet}</td>
                       <td className="px-3 py-3 text-xs text-gray-600">{atestat.din_cadrul}</td>
                       <td className="px-3 py-3 text-xs text-gray-600">{atestat.functie}</td>
-                      <td className="px-3 py-3">
-                        {canEditStatus ? (
+                      <td className="px-3 py-2">
+                        {user?.role === 'admin' ? (
                           <select
                             value={atestat.status || 'PRIMITA'}
                             onChange={(e) => handleStatusChange(atestat.id, e.target.value)}

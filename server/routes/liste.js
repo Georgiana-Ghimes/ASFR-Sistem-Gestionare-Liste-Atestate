@@ -77,9 +77,9 @@ router.get('/my-lists', authenticateToken, async (req, res) => {
 // Create new list (ISF/CISF/SCSC/admin)
 router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'), upload.single('pdf'), async (req, res) => {
   try {
-    const { numar_lista, data_lista, numar_autorizatii, isf_name, observatii } = req.body;
+    const { numar_lista, numar_autorizatii, isf_name } = req.body;
 
-    if (!numar_lista || !data_lista || !numar_autorizatii || !isf_name || !req.file) {
+    if (!numar_lista || !numar_autorizatii || !isf_name || !req.file) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -90,24 +90,22 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
     );
 
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'Numărul listei există deja' });
+      return res.status(400).json({ error: 'Numărul comisiei există deja' });
     }
 
     const result = await pool.query(
       `INSERT INTO liste_tiparire 
-       (numar_lista, data_lista, isf_name, numar_autorizatii, pdf_url, pdf_filename, 
-        status, observatii, created_by_email) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       (numar_lista, isf_name, numar_autorizatii, pdf_url, pdf_filename, 
+        status, created_by_email) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
       [
         numar_lista,
-        data_lista,
         isf_name,
         parseInt(numar_autorizatii),
         `/uploads/${req.file.filename}`,
         req.file.originalname,
         'PRIMITA',
-        observatii || null,
         req.user.email
       ]
     );
@@ -119,8 +117,8 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
   }
 });
 
-// Update list status (CISF/admin only)
-router.patch('/:id/status', authenticateToken, requireRole('cisf', 'admin'), async (req, res) => {
+// Update list status (admin only)
+router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -189,8 +187,8 @@ router.get('/stats', authenticateToken, async (req, res) => {
 
     if (month && year) {
       monthlyParams.push(parseInt(year), parseInt(month));
-      monthlyQuery += ` AND EXTRACT(YEAR FROM data_lista) = $${paramCount++}`;
-      monthlyQuery += ` AND EXTRACT(MONTH FROM data_lista) = $${paramCount}`;
+      monthlyQuery += ` AND EXTRACT(YEAR FROM created_date) = $${paramCount++}`;
+      monthlyQuery += ` AND EXTRACT(MONTH FROM created_date) = $${paramCount}`;
     }
 
     const monthlyLists = await pool.query(monthlyQuery, monthlyParams);

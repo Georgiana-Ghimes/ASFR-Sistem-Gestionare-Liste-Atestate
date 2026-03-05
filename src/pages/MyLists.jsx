@@ -37,8 +37,8 @@ export default function MyLists({ user }) {
   const filtered = lists
     .filter((l) => {
       if (filterStatus !== "ALL" && l.status !== filterStatus) return false;
-      if (filterFrom && l.data_lista < filterFrom) return false;
-      if (filterTo && l.data_lista > filterTo) return false;
+      if (filterFrom && l.created_date < filterFrom) return false;
+      if (filterTo && l.created_date > filterTo) return false;
       if (search && !l.numar_lista.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     })
@@ -76,7 +76,7 @@ export default function MyLists({ user }) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Caută număr listă..."
+              placeholder="Caută număr comisie..."
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -117,8 +117,7 @@ export default function MyLists({ user }) {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
                   {[
-                    { label: "Număr Listă", col: "numar_lista" },
-                    { label: "Data Listă", col: "data_lista" },
+                    { label: "Număr Comisie", col: "numar_lista" },
                     { label: "Nr. Autorizații", col: "numar_autorizatii" },
                     { label: "Status", col: "status" },
                     { label: "Creat La", col: "created_date" },
@@ -139,7 +138,7 @@ export default function MyLists({ user }) {
               <tbody className="divide-y divide-gray-50">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center text-gray-400 text-sm">
+                    <td colSpan={4} className="px-6 py-16 text-center text-gray-400 text-sm">
                       Nu există liste care să corespundă filtrelor selectate.
                     </td>
                   </tr>
@@ -147,9 +146,6 @@ export default function MyLists({ user }) {
                   filtered.map((l) => (
                     <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 text-sm font-semibold text-gray-900">{l.numar_lista}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {l.data_lista ? format(new Date(l.data_lista), "dd.MM.yyyy") : "-"}
-                      </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{l.numar_autorizatii}</td>
                       <td className="px-6 py-4"><StatusBadge status={l.status} /></td>
                       <td className="px-6 py-4 text-sm text-gray-400">

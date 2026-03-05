@@ -3,15 +3,15 @@ import React from "react";
 const statusConfig = {
   PRIMITA: {
     label: "PRIMITĂ",
-    className: "bg-amber-100 text-amber-800 border border-amber-200",
+    className: "bg-gray-100 text-gray-700 border border-gray-200",
   },
   VERIFICATA: {
     label: "VERIFICATĂ",
-    className: "bg-blue-100 text-blue-800 border border-blue-200",
+    className: "bg-orange-100 text-orange-700 border border-orange-200",
   },
   TRIMISA: {
     label: "TRIMISĂ",
-    className: "bg-emerald-100 text-emerald-800 border border-emerald-200",
+    className: "bg-green-100 text-green-700 border border-green-200",
   },
 };
 

@@ -7,10 +7,8 @@ export default function CreateList({ user }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     numar_lista: "",
-    data_lista: "",
     numar_autorizatii: "",
     isf_name: "",
-    observatii: "",
   });
   const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState("");
@@ -101,8 +99,7 @@ export default function CreateList({ user }) {
     e.preventDefault();
     setError("");
 
-    if (!form.numar_lista.trim()) { setError("Numărul listei este obligatoriu."); return; }
-    if (!form.data_lista) { setError("Data listei este obligatorie."); return; }
+    if (!form.numar_lista.trim()) { setError("Numărul comisiei este obligatoriu."); return; }
     if (!form.isf_name) { setError("ISF/CISF/SCSC este obligatoriu."); return; }
     if (!form.numar_autorizatii || parseInt(form.numar_autorizatii) < 1) {
       setError("Numărul de autorizații trebuie să fie cel puțin 1."); return;
@@ -114,10 +111,8 @@ export default function CreateList({ user }) {
     try {
       const formData = new FormData();
       formData.append('numar_lista', form.numar_lista.trim());
-      formData.append('data_lista', form.data_lista);
       formData.append('isf_name', form.isf_name);
       formData.append('numar_autorizatii', form.numar_autorizatii);
-      formData.append('observatii', form.observatii || '');
       formData.append('pdf', pdfFile);
 
       await apiClient.createList(formData);
@@ -191,26 +186,14 @@ export default function CreateList({ user }) {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Număr Listă <span className="text-red-500">*</span>
+              Număr Comisie <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.numar_lista}
               onChange={(e) => setForm({ ...form, numar_lista: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="ex: L-2024-001"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Data Listă <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              value={form.data_lista}
-              onChange={(e) => setForm({ ...form, data_lista: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="ex: C99725"
             />
           </div>
 
@@ -256,17 +239,6 @@ export default function CreateList({ user }) {
               </div>
             )}
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Observații</label>
-          <textarea
-            value={form.observatii}
-            onChange={(e) => setForm({ ...form, observatii: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-            placeholder="Observații opționale..."
-          />
         </div>
 
         <div className="flex justify-end pt-2">

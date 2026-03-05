@@ -89,7 +89,7 @@ router.get('/my-atestate', authenticateToken, requireAtestateRole, async (req, r
 // Create new atestat
 router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 20), async (req, res) => {
   try {
-    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, observatii, organization_type, organization_name } = req.body;
+    const { numar_atestat, data_atestat, nume_complet, din_cadrul, functie, organization_type, organization_name } = req.body;
 
     if (!numar_atestat || !data_atestat || !nume_complet || !din_cadrul || !functie || !organization_type || !organization_name) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -129,8 +129,8 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
       `INSERT INTO atestate 
        (numar_atestat, data_atestat, nume_complet, din_cadrul, functie, 
         pdf1_url, pdf1_filename, pdf2_url, pdf2_filename, pdf3_url, pdf3_filename,
-        all_files, observatii, created_by_email, organization_type, organization_name) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+        all_files, created_by_email, organization_type, organization_name) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
        RETURNING *`,
       [
         numar_atestat,
@@ -145,7 +145,6 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
         pdf3_url,
         pdf3_filename,
         JSON.stringify(allFiles),
-        observatii || null,
         req.user.email,
         organization_type,
         organization_name
@@ -183,9 +182,14 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Update atestat status
-router.patch('/:id/status', authenticateToken, requireAtestateRole, async (req, res) => {
+// Update atestat status (admin only)
+router.patch('/:id/status', authenticateToken, async (req, res) => {
   try {
+    // Only admins can change status
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. Admin role required.' });
+    }
+
     const { id } = req.params;
     const { status } = req.body;
 

@@ -46,7 +46,7 @@ export default function Dashboard({ user }) {
   // Use appropriate list based on active tab
   const allOrganizations = activeTab === "liste" ? allISFs : allOrgsFromAtestate;
   
-  const years = [...new Set(lists.map((l) => l.data_lista ? String(new Date(l.data_lista).getFullYear()) : null).filter(Boolean))].sort((a, b) => parseInt(b) - parseInt(a));
+  const years = [...new Set(lists.map((l) => l.created_date ? String(new Date(l.created_date).getFullYear()) : null).filter(Boolean))].sort((a, b) => parseInt(b) - parseInt(a));
   if (!years.includes(filterYear)) years.unshift(filterYear);
 
   const nowMonth = parseInt(filterMonth);

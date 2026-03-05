@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
-import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, CheckCircle, Send, Trash2 } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 const COLUMNS = [
   { label: "ISF / CISF / SCSC", col: "isf_name" },
-  { label: "Nr. Listă", col: "numar_lista" },
-  { label: "Data", col: "data_lista" },
+  { label: "Nr. Comisie", col: "numar_lista" },
   { label: "Nr. Aut.", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
   { label: "Urcat", col: "created_date" },
@@ -28,7 +27,6 @@ export default function AllLists({ user }) {
   const [sortCol, setSortCol] = useState("created_date");
   const [sortDir, setSortDir] = useState("desc");
   const [pdfModal, setPdfModal] = useState(null);
-  const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
@@ -48,27 +46,20 @@ export default function AllLists({ user }) {
 
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
-  const handleStatusChange = async (lista, newStatus) => {
-    if (user?.role !== 'cisf' && user?.role !== 'admin') return;
-    const validTransitions = { PRIMITA: "VERIFICATA", VERIFICATA: "TRIMISA" };
-    if (validTransitions[lista.status] !== newStatus) return;
-    if (lista.status === "TRIMISA") return;
-
-    setUpdatingId(lista.id);
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      await apiClient.updateListStatus(lista.id, newStatus);
+      await apiClient.updateListStatus(id, newStatus);
       await load();
     } catch (error) {
       console.error('Failed to update status:', error);
-    } finally {
-      setUpdatingId(null);
+      alert('Eroare la actualizarea statusului');
     }
   };
 
   const handleDelete = async (lista) => {
     if (user?.role !== 'admin') return;
     
-    if (!confirm(`Sigur doriți să ștergeți lista ${lista.numar_lista}?`)) return;
+    if (!confirm(`Sigur doriți să ștergeți lista cu numărul comisiei ${lista.numar_lista}?`)) return;
     
     setDeletingId(lista.id);
     try {
@@ -107,13 +98,12 @@ export default function AllLists({ user }) {
 
   const handleExport = () => {
     const headers = [
-      "Număr Listă", "ISF", "Data", "Nr. Autorizații", "Status",
-      "Creat La", "Verificat La", "Trimis La", "Verificat By", "Trimis By"
+      "ISF / CISF / SCSC", "Număr Comisie", "Nr. Autorizații", "Status",
+      "Urcat La", "Verificat La", "Trimis La", "Urcat De", "Verificat De", "Trimis De"
     ];
     const rows = filtered.map((l) => [
-      l.numar_lista || "",
       l.isf_name || "",
-      l.data_lista || "",
+      l.numar_lista || "",
       l.numar_autorizatii || "",
       l.status || "",
       l.created_date ? format(new Date(l.created_date), "dd.MM.yyyy HH:mm") : "",
@@ -187,7 +177,7 @@ export default function AllLists({ user }) {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Număr listă..."
+                placeholder="Număr comisie..."
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -276,11 +266,22 @@ export default function AllLists({ user }) {
                     <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-3 py-2 text-xs text-gray-600">{l.isf_name}</td>
                       <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
-                        {l.data_lista ? format(new Date(l.data_lista), "dd.MM.yyyy") : "-"}
-                      </td>
                       <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
-                      <td className="px-3 py-2"><StatusBadge status={l.status} /></td>
+                      <td className="px-3 py-2">
+                        {user?.role === 'admin' ? (
+                          <select
+                            value={l.status || 'PRIMITA'}
+                            onChange={(e) => handleStatusChange(l.id, e.target.value)}
+                            className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="PRIMITA">PRIMITĂ</option>
+                            <option value="VERIFICATA">VERIFICATĂ</option>
+                            <option value="TRIMISA">TRIMISĂ</option>
+                          </select>
+                        ) : (
+                          <StatusBadge status={l.status} />
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-xs text-gray-400">
                         {l.created_date ? (
                           <>
@@ -316,34 +317,6 @@ export default function AllLists({ user }) {
                               title="Vizualizare PDF"
                             >
                               <Eye className="w-4 h-4 text-gray-500" />
-                            </button>
-                          )}
-                          {l.status === "PRIMITA" && (
-                            <button
-                              onClick={() => handleStatusChange(l, "VERIFICATA")}
-                              disabled={updatingId === l.id}
-                              className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
-                            >
-                              {updatingId === l.id ? (
-                                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <CheckCircle className="w-3 h-3" />
-                              )}
-                              VERIFICATĂ
-                            </button>
-                          )}
-                          {l.status === "VERIFICATA" && (
-                            <button
-                              onClick={() => handleStatusChange(l, "TRIMISA")}
-                              disabled={updatingId === l.id}
-                              className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
-                            >
-                              {updatingId === l.id ? (
-                                <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Send className="w-3 h-3" />
-                              )}
-                              TRIMISĂ
                             </button>
                           )}
                           {user?.role === 'admin' && (
