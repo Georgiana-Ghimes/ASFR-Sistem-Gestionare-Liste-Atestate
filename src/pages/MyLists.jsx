@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "../components/StatusBadge";
-import { Search, ChevronUp, ChevronDown, Filter } from "lucide-react";
+import PDFViewerModal from "../components/PDFViewerModal";
+import { Search, ChevronUp, ChevronDown, Filter, Eye } from "lucide-react";
 import { format } from "date-fns";
 
 export default function MyLists({ user }) {
@@ -13,6 +14,7 @@ export default function MyLists({ user }) {
   const [search, setSearch] = useState("");
   const [sortCol, setSortCol] = useState("created_date");
   const [sortDir, setSortDir] = useState("desc");
+  const [pdfModal, setPdfModal] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +29,11 @@ export default function MyLists({ user }) {
       }
     };
     load();
+    
+    // Poll for updates every 3 seconds
+    const interval = setInterval(load, 3000);
+    
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleSort = (col) => {
@@ -57,6 +64,14 @@ export default function MyLists({ user }) {
 
   return (
     <div className="p-8">
+      {pdfModal && (
+        <PDFViewerModal
+          url={pdfModal.url}
+          filename={pdfModal.filename}
+          onClose={() => setPdfModal(null)}
+        />
+      )}
+
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Listele Mele</h1>
         <p className="text-gray-500 mt-1 text-sm">
@@ -120,16 +135,19 @@ export default function MyLists({ user }) {
                     { label: "Număr Comisie", col: "numar_lista" },
                     { label: "Nr. Autorizații", col: "numar_autorizatii" },
                     { label: "Status", col: "status" },
-                    { label: "Creat La", col: "created_date" },
+                    { label: "Urcată de", col: "created_date" },
+                    { label: "Verificată de", col: "verificat_at" },
+                    { label: "Trimisă de", col: "trimis_at" },
+                    { label: "Acțiuni", col: null },
                   ].map(({ label, col }) => (
                     <th
-                      key={col}
-                      onClick={() => handleSort(col)}
-                      className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 select-none"
+                      key={label}
+                      onClick={() => col && handleSort(col)}
+                      className={`px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
                     >
                       <div className="flex items-center gap-1">
                         {label}
-                        <SortIcon col={col} />
+                        {col && <SortIcon col={col} />}
                       </div>
                     </th>
                   ))}
@@ -138,18 +156,53 @@ export default function MyLists({ user }) {
               <tbody className="divide-y divide-gray-50">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-16 text-center text-gray-400 text-sm">
+                    <td colSpan={7} className="px-6 py-16 text-center text-gray-400 text-sm">
                       Nu există liste care să corespundă filtrelor selectate.
                     </td>
                   </tr>
                 ) : (
                   filtered.map((l) => (
                     <tr key={l.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">{l.numar_lista}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{l.numar_autorizatii}</td>
-                      <td className="px-6 py-4"><StatusBadge status={l.status} /></td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
-                        {l.created_date ? format(new Date(l.created_date), "dd.MM.yyyy HH:mm") : "-"}
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
+                      <td className="px-3 py-2"><StatusBadge status={l.status} /></td>
+                      <td className="px-3 py-2 text-xs text-gray-400">
+                        {l.created_date ? (
+                          <>
+                            <div>{format(new Date(l.created_date), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.created_date), "HH:mm")}</div>
+                            {l.created_by_email && <div className="text-[10px]">({l.created_by_email})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400">
+                        {l.verificat_at ? (
+                          <>
+                            <div>{format(new Date(l.verificat_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.verificat_at), "HH:mm")}</div>
+                            {l.verificat_by && <div className="text-[10px]">({l.verificat_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400">
+                        {l.trimis_at ? (
+                          <>
+                            <div>{format(new Date(l.trimis_at), "dd.MM.yyyy")}</div>
+                            <div>{format(new Date(l.trimis_at), "HH:mm")}</div>
+                            {l.trimis_by && <div className="text-[10px]">({l.trimis_by})</div>}
+                          </>
+                        ) : "-"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {l.pdf_url && (
+                          <button
+                            onClick={() => setPdfModal({ url: l.pdf_url, filename: l.pdf_filename })}
+                            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Vizualizare PDF"
+                          >
+                            <Eye className="w-4 h-4 text-gray-500" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

@@ -221,7 +221,7 @@ export default function Dashboard({ user }) {
                 >
                   Statistici Liste
                 </button>
-                {(user?.has_atestate_role || user?.role === 'admin') && (
+                {(user?.has_atestate_role || user?.role === 'admin') && user?.email !== 'daniel.bulearca@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("atestate")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${

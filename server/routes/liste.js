@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import { format } from 'date-fns';
 import { pool } from '../db.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 
@@ -85,12 +86,13 @@ router.post('/', authenticateToken, requireRole('isf', 'cisf', 'scsc', 'admin'),
 
     // Check uniqueness
     const existing = await pool.query(
-      'SELECT id FROM liste_tiparire WHERE numar_lista = $1',
+      'SELECT id, created_date FROM liste_tiparire WHERE numar_lista = $1',
       [numar_lista]
     );
 
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'Numărul comisiei există deja' });
+      const existingDate = format(new Date(existing.rows[0].created_date), 'dd.MM.yyyy');
+      return res.status(400).json({ error: `Lista a fost deja încărcată în data de ${existingDate}` });
     }
 
     const result = await pool.query(

@@ -46,6 +46,15 @@ export default function AllLists({ user }) {
 
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
 
+  const handleDownloadPDF = (pdfUrl, filename) => {
+    const link = document.createElement('a');
+    link.href = `${window.location.origin.replace(':5173', ':3001')}${pdfUrl}`;
+    link.download = filename || 'lista.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleStatusChange = async (id, newStatus) => {
     try {
       await apiClient.updateListStatus(id, newStatus);
@@ -287,6 +296,7 @@ export default function AllLists({ user }) {
                           <>
                             <div>{format(new Date(l.created_date), "dd.MM.yyyy")}</div>
                             <div>{format(new Date(l.created_date), "HH:mm")}</div>
+                            {l.created_by_email && <div className="text-[10px]">({l.created_by_email})</div>}
                           </>
                         ) : "-"}
                       </td>
@@ -311,13 +321,22 @@ export default function AllLists({ user }) {
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1">
                           {l.pdf_url && (
-                            <button
-                              onClick={() => setPdfModal({ url: l.pdf_url, filename: l.pdf_filename })}
-                              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Vizualizare PDF"
-                            >
-                              <Eye className="w-4 h-4 text-gray-500" />
-                            </button>
+                            <>
+                              <button
+                                onClick={() => setPdfModal({ url: l.pdf_url, filename: l.pdf_filename })}
+                                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Vizualizare PDF"
+                              >
+                                <Eye className="w-4 h-4 text-gray-500" />
+                              </button>
+                              <button
+                                onClick={() => handleDownloadPDF(l.pdf_url, l.pdf_filename)}
+                                className="p-1 bg-pink-50 hover:bg-pink-100 text-pink-600 rounded-lg transition-colors"
+                                title="Descarcă PDF"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </>
                           )}
                           {user?.role === 'admin' && (
                             <button
