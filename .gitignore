@@ -1,6 +1,7 @@
 #env
 .env
 .env.*
+!.env.example
 
 # Logs
 logs
@@ -24,8 +25,10 @@ dist-ssr
 .env
 .env.local
 .env.production
+!.env.example
 server/.env
 server/.env.local
+!server/.env.example
 
 # Uploads
 server/uploads/*
