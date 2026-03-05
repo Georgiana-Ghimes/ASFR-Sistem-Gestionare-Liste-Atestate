@@ -143,9 +143,9 @@ export default function MyLists({ user }) {
                     <th
                       key={label}
                       onClick={() => col && handleSort(col)}
-                      className={`px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
+                      className={`px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         {label}
                         {col && <SortIcon col={col} />}
                       </div>
@@ -166,10 +166,14 @@ export default function MyLists({ user }) {
                       l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
                       'hover:bg-gray-50/50'
                     }`}>
-                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
-                      <td className="px-3 py-2"><StatusBadge status={l.status} /></td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900 text-center">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex justify-center">
+                          <StatusBadge status={l.status} />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.created_date ? (
                           <>
                             <div>{format(new Date(l.created_date), "dd.MM.yyyy")}</div>
@@ -178,7 +182,7 @@ export default function MyLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.verificat_at ? (
                           <>
                             <div>{format(new Date(l.verificat_at), "dd.MM.yyyy")}</div>
@@ -187,7 +191,7 @@ export default function MyLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.trimis_at ? (
                           <>
                             <div>{format(new Date(l.trimis_at), "dd.MM.yyyy")}</div>
@@ -196,7 +200,7 @@ export default function MyLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 text-center">
                         {l.pdf_url && (
                           <button
                             onClick={() => setPdfModal({ url: l.pdf_url, filename: l.pdf_filename })}

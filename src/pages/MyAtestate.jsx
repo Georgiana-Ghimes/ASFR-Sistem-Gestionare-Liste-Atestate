@@ -137,16 +137,16 @@ export default function MyAtestate({ user }) {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Seria</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Nume</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Specialitate</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Urcată de</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Verificată de</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Trimisă de</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Seria</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Data</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Nume</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Din cadrul</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Specialitate</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Urcată de</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Verificată de</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Trimisă de</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -155,15 +155,19 @@ export default function MyAtestate({ user }) {
                       a.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
                       'hover:bg-gray-50/50'
                     }`}>
-                      <td className="px-3 py-2 text-xs text-gray-900">{a.numar_atestat}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs text-gray-900 text-center">{a.numar_atestat}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap text-center">
                         {new Date(a.data_atestat).toLocaleDateString('ro-RO')}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-900">{a.nume_complet}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600">{a.din_cadrul}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600">{a.functie}</td>
-                      <td className="px-3 py-2"><StatusBadge status={a.status || 'PRIMITA'} /></td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-900 text-center">{a.nume_complet}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{a.din_cadrul}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{a.functie}</td>
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex justify-center">
+                          <StatusBadge status={a.status || 'PRIMITA'} />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {a.created_date ? (
                           <>
                             <div>{format(new Date(a.created_date), "dd.MM.yyyy")}</div>
@@ -172,7 +176,7 @@ export default function MyAtestate({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {a.verificat_at ? (
                           <>
                             <div>{format(new Date(a.verificat_at), "dd.MM.yyyy")}</div>
@@ -181,7 +185,7 @@ export default function MyAtestate({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {a.trimis_at ? (
                           <>
                             <div>{format(new Date(a.trimis_at), "dd.MM.yyyy")}</div>
@@ -190,8 +194,8 @@ export default function MyAtestate({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-1">
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleDownload(a.id, a.numar_atestat)}
                             disabled={downloading === a.id}

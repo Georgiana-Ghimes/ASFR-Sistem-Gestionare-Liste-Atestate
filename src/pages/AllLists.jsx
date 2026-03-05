@@ -6,13 +6,14 @@ import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, Trash2 } from "l
 import { format } from "date-fns";
 
 const COLUMNS = [
+  { label: "", col: null }, // Empty column for NOU badge
   { label: "ISF / CISF / SCSC", col: "isf_name" },
   { label: "Nr. Comisie", col: "numar_lista" },
   { label: "Nr. Aut.", col: "numar_autorizatii" },
   { label: "Status", col: "status" },
-  { label: "Urcat", col: "created_date" },
-  { label: "Verificat", col: "verificat_at" },
-  { label: "Trimis", col: "trimis_at" },
+  { label: "Urcată de", col: "created_date" },
+  { label: "Verificată de", col: "verificat_at" },
+  { label: "Trimisă de", col: "trimis_at" },
   { label: "Acțiuni", col: null },
 ];
 
@@ -253,9 +254,9 @@ export default function AllLists({ user }) {
                     <th
                       key={label}
                       onClick={() => handleSort(col)}
-                      className={`px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
+                      className={`px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase ${col ? "cursor-pointer hover:text-gray-700 select-none" : ""}`}
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         {label}
                         {col && <SortIcon col={col} />}
                       </div>
@@ -277,32 +278,34 @@ export default function AllLists({ user }) {
                       l.status === 'TRIMISA' ? 'bg-green-50 hover:bg-green-100' : 
                       'hover:bg-gray-50/50'
                     }`}>
-                      {l.status === 'PRIMITA' && (
-                        <td className="px-3 py-2">
+                      <td className="px-3 py-2 text-center">
+                        {l.status === 'PRIMITA' && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-yellow-700 bg-yellow-200 border border-yellow-300">
                             NOU!
                           </span>
-                        </td>
-                      )}
-                      <td className={`px-3 py-2 text-xs text-gray-600 ${l.status === 'PRIMITA' ? '' : 'pl-[52px]'}`}>{l.isf_name}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-gray-900">{l.numar_lista}</td>
-                      <td className="px-3 py-2 text-xs text-gray-600">{l.numar_autorizatii}</td>
-                      <td className="px-3 py-2">
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.isf_name}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-900 text-center">{l.numar_lista}</td>
+                      <td className="px-3 py-2 text-xs text-gray-600 text-center">{l.numar_autorizatii}</td>
+                      <td className="px-3 py-2 text-center">
                         {user?.role === 'admin' ? (
                           <select
                             value={l.status || 'PRIMITA'}
                             onChange={(e) => handleStatusChange(l.id, e.target.value)}
-                            className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 mx-auto"
                           >
                             <option value="PRIMITA">PRIMITĂ</option>
                             <option value="VERIFICATA">VERIFICATĂ</option>
                             <option value="TRIMISA">TRIMISĂ</option>
                           </select>
                         ) : (
-                          <StatusBadge status={l.status} />
+                          <div className="flex justify-center">
+                            <StatusBadge status={l.status} />
+                          </div>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.created_date ? (
                           <>
                             <div>{format(new Date(l.created_date), "dd.MM.yyyy")}</div>
@@ -311,7 +314,7 @@ export default function AllLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.verificat_at ? (
                           <>
                             <div>{format(new Date(l.verificat_at), "dd.MM.yyyy")}</div>
@@ -320,7 +323,7 @@ export default function AllLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-400">
+                      <td className="px-3 py-2 text-xs text-gray-400 text-center">
                         {l.trimis_at ? (
                           <>
                             <div>{format(new Date(l.trimis_at), "dd.MM.yyyy")}</div>
@@ -329,7 +332,7 @@ export default function AllLists({ user }) {
                           </>
                         ) : "-"}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 text-center">
                         <div className="flex items-center gap-1">
                           {l.pdf_url && (
                             <>
