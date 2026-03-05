@@ -175,13 +175,10 @@ export default function Dashboard({ user }) {
     const monthName = months.find(m => m.v === String(currentMonth).padStart(2, "0"))?.l;
     
     const workbook = XLSX.utils.book_new();
-    const data = [];
-    let currentRow = 0;
 
-    // Get all ISFs and create blocks for each
-    allISFs.forEach((isf, index) => {
-      // Filter lists for this ISF in current month
-      const isfLists = lists.filter((l) => {
+    // Get ISFs that have activity in current month
+    const activeISFs = allISFs.filter(isf => {
+      return lists.some(l => {
         if (l.isf_name !== isf) return false;
         if (l.created_date) {
           const d = new Date(l.created_date);
@@ -189,65 +186,101 @@ export default function Dashboard({ user }) {
         }
         return false;
       });
+    });
 
-      const trimiseInLuna = lists.filter((l) => {
-        if (l.isf_name !== isf) return false;
-        if (l.trimis_at) {
-          const d = new Date(l.trimis_at);
-          return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
-        }
-        return false;
-      }).length;
+    if (activeISFs.length === 0) {
+      // Create empty sheet if no data
+      const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
+      XLSX.writeFile(workbook, `raport-liste-${monthName.toLowerCase()}-${currentYear}.xlsx`);
+      return;
+    }
 
-      const totalAutorizatii = isfLists.filter((l) => l.tip === "Autorizatii").length;
-      const totalVize = isfLists.filter((l) => l.tip === "Vize").length;
-      const totalDuplicate = isfLists.filter((l) => l.tip === "Duplicate").length;
-      const totalSchimbareNume = isfLists.filter((l) => l.tip === "Schimbare nume").length;
+    // Build data horizontally - each ISF is a column block
+    const indicators = [
+      "Total Liste",
+      "Total Autorizații",
+      "Total Vize",
+      "Total Duplicate",
+      "Total Schimbare nume",
+      "Primite",
+      "Verificate",
+      "Trimise",
+      `Trimise ${monthName}`
+    ];
 
-      // Add ISF block
-      data.push([`Isf (${isf})`, "Valoare"]);
-      data.push(["Total Liste", isfLists.length]);
-      data.push(["Total Autorizații", totalAutorizatii]);
-      data.push(["Total Vize", totalVize]);
-      data.push(["Total Duplicate", totalDuplicate]);
-      data.push(["Total Schimbare nume", totalSchimbareNume]);
-      data.push(["Primite", isfLists.filter((l) => l.status === "PRIMITA").length]);
-      data.push(["Verificate", isfLists.filter((l) => l.status === "VERIFICATA").length]);
-      data.push(["Trimise", isfLists.filter((l) => l.status === "TRIMISA").length]);
-      data.push([`Trimise ${monthName}`, trimiseInLuna]);
-
-      // Add empty row between blocks (except after last one)
-      if (index < allISFs.length - 1) {
-        data.push(["", ""]);
+    const data = [];
+    
+    // First row: ISF names
+    const headerRow = [];
+    activeISFs.forEach((isf, index) => {
+      headerRow.push(isf);
+      if (index < activeISFs.length - 1) {
+        headerRow.push(""); // Empty column between blocks
       }
+    });
+    data.push(headerRow);
+
+    // Data rows: one row per indicator
+    indicators.forEach((indicator, indicatorIndex) => {
+      const row = [];
+      activeISFs.forEach((isf, isfIndex) => {
+        const isfLists = lists.filter((l) => {
+          if (l.isf_name !== isf) return false;
+          if (l.created_date) {
+            const d = new Date(l.created_date);
+            return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+          }
+          return false;
+        });
+
+        let value = 0;
+        if (indicatorIndex === 0) value = isfLists.length;
+        else if (indicatorIndex === 1) value = isfLists.filter(l => l.tip === "Autorizatii").length;
+        else if (indicatorIndex === 2) value = isfLists.filter(l => l.tip === "Vize").length;
+        else if (indicatorIndex === 3) value = isfLists.filter(l => l.tip === "Duplicate").length;
+        else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
+        else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
+        else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
+        else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
+        else if (indicatorIndex === 8) {
+          value = lists.filter((l) => {
+            if (l.isf_name !== isf) return false;
+            if (l.trimis_at) {
+              const d = new Date(l.trimis_at);
+              return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+            }
+            return false;
+          }).length;
+        }
+
+        row.push(`${indicator}: ${value}`);
+        if (isfIndex < activeISFs.length - 1) {
+          row.push(""); // Empty column between blocks
+        }
+      });
+      data.push(row);
     });
 
     const worksheet = XLSX.utils.aoa_to_sheet(data);
 
     // Apply borders to each ISF block
-    const range = XLSX.utils.decode_range(worksheet['!ref']);
-    let blockStart = 0;
-    
-    allISFs.forEach((isf, index) => {
-      const blockEnd = blockStart + 9; // 10 rows per block (header + 9 data rows)
+    activeISFs.forEach((isf, isfIndex) => {
+      const colIndex = isfIndex * 2; // Each block is 2 columns apart (1 data + 1 empty)
       
-      // Apply thin border around the entire block
-      for (let R = blockStart; R <= blockEnd; R++) {
-        for (let C = 0; C <= 1; C++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
-          
-          worksheet[cellAddress].s.border = {
-            top: R === blockStart ? { style: 'thin' } : undefined,
-            bottom: R === blockEnd ? { style: 'thin' } : undefined,
-            left: C === 0 ? { style: 'thin' } : undefined,
-            right: C === 1 ? { style: 'thin' } : undefined
-          };
-        }
+      // Apply border around the entire block (header + 9 data rows)
+      for (let R = 0; R <= 9; R++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+        if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+        if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
+        
+        worksheet[cellAddress].s.border = {
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       }
-      
-      blockStart = blockEnd + 2; // Move to next block (skip empty row)
     });
 
     XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
@@ -260,12 +293,10 @@ export default function Dashboard({ user }) {
     const monthName = months.find(m => m.v === String(currentMonth).padStart(2, "0"))?.l;
     
     const workbook = XLSX.utils.book_new();
-    const data = [];
 
-    // Get all organizations and create blocks for each
-    allOrgsFromAtestate.forEach((org, index) => {
-      // Filter atestate for this organization in current month
-      const orgAtestate = atestate.filter((a) => {
+    // Get organizations that have activity in current month
+    const activeOrgs = allOrgsFromAtestate.filter(org => {
+      return atestate.some(a => {
         if (a.organization_name !== org) return false;
         if (a.created_date) {
           const d = new Date(a.created_date);
@@ -273,55 +304,90 @@ export default function Dashboard({ user }) {
         }
         return false;
       });
+    });
 
-      const trimiseInLuna = atestate.filter((a) => {
-        if (a.organization_name !== org) return false;
-        if (a.trimis_at) {
-          const d = new Date(a.trimis_at);
-          return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
-        }
-        return false;
-      }).length;
+    if (activeOrgs.length === 0) {
+      const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
+      XLSX.writeFile(workbook, `raport-atestate-${monthName.toLowerCase()}-${currentYear}.xlsx`);
+      return;
+    }
 
-      // Add organization block
-      data.push([`Organizație (${org})`, "Valoare"]);
-      data.push(["Total Atestate", orgAtestate.length]);
-      data.push(["Primite", orgAtestate.filter((a) => a.status === "PRIMITA").length]);
-      data.push(["Verificate", orgAtestate.filter((a) => a.status === "VERIFICATA").length]);
-      data.push(["Trimise", orgAtestate.filter((a) => a.status === "TRIMISA").length]);
-      data.push([`Trimise ${monthName}`, trimiseInLuna]);
+    const indicators = [
+      "Total Atestate",
+      "Primite",
+      "Verificate",
+      "Trimise",
+      `Trimise ${monthName}`
+    ];
 
-      // Add empty row between blocks (except after last one)
-      if (index < allOrgsFromAtestate.length - 1) {
-        data.push(["", ""]);
+    const data = [];
+    
+    // First row: Organization names
+    const headerRow = [];
+    activeOrgs.forEach((org, index) => {
+      headerRow.push(org);
+      if (index < activeOrgs.length - 1) {
+        headerRow.push("");
       }
+    });
+    data.push(headerRow);
+
+    // Data rows
+    indicators.forEach((indicator, indicatorIndex) => {
+      const row = [];
+      activeOrgs.forEach((org, orgIndex) => {
+        const orgAtestate = atestate.filter((a) => {
+          if (a.organization_name !== org) return false;
+          if (a.created_date) {
+            const d = new Date(a.created_date);
+            return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+          }
+          return false;
+        });
+
+        let value = 0;
+        if (indicatorIndex === 0) value = orgAtestate.length;
+        else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
+        else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
+        else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
+        else if (indicatorIndex === 4) {
+          value = atestate.filter((a) => {
+            if (a.organization_name !== org) return false;
+            if (a.trimis_at) {
+              const d = new Date(a.trimis_at);
+              return getMonth(d) + 1 === currentMonth && getYear(d) === currentYear;
+            }
+            return false;
+          }).length;
+        }
+
+        row.push(`${indicator}: ${value}`);
+        if (orgIndex < activeOrgs.length - 1) {
+          row.push("");
+        }
+      });
+      data.push(row);
     });
 
     const worksheet = XLSX.utils.aoa_to_sheet(data);
 
-    // Apply borders to each organization block
-    let blockStart = 0;
-    
-    allOrgsFromAtestate.forEach((org, index) => {
-      const blockEnd = blockStart + 5; // 6 rows per block (header + 5 data rows)
+    // Apply borders
+    activeOrgs.forEach((org, orgIndex) => {
+      const colIndex = orgIndex * 2;
       
-      // Apply thin border around the entire block
-      for (let R = blockStart; R <= blockEnd; R++) {
-        for (let C = 0; C <= 1; C++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
-          
-          worksheet[cellAddress].s.border = {
-            top: R === blockStart ? { style: 'thin' } : undefined,
-            bottom: R === blockEnd ? { style: 'thin' } : undefined,
-            left: C === 0 ? { style: 'thin' } : undefined,
-            right: C === 1 ? { style: 'thin' } : undefined
-          };
-        }
+      for (let R = 0; R <= 5; R++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+        if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+        if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
+        
+        worksheet[cellAddress].s.border = {
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       }
-      
-      blockStart = blockEnd + 2; // Move to next block (skip empty row)
     });
 
     XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
@@ -335,11 +401,10 @@ export default function Dashboard({ user }) {
     // Create a sheet for each month
     months.forEach((month) => {
       const monthNum = parseInt(month.v);
-      const data = [];
 
-      // Get all ISFs and create blocks for each
-      allISFs.forEach((isf, index) => {
-        const isfLists = lists.filter((l) => {
+      // Get ISFs that have activity in this month
+      const activeISFs = allISFs.filter(isf => {
+        return lists.some(l => {
           if (l.isf_name !== isf) return false;
           if (l.created_date) {
             const d = new Date(l.created_date);
@@ -347,71 +412,100 @@ export default function Dashboard({ user }) {
           }
           return false;
         });
+      });
 
-        const trimiseInLuna = lists.filter((l) => {
-          if (l.isf_name !== isf) return false;
-          if (l.trimis_at) {
-            const d = new Date(l.trimis_at);
-            return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+      if (activeISFs.length === 0) {
+        const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+        return;
+      }
+
+      const indicators = [
+        "Total Liste",
+        "Total Autorizații",
+        "Total Vize",
+        "Total Duplicate",
+        "Total Schimbare nume",
+        "Primite",
+        "Verificate",
+        "Trimise",
+        `Trimise ${month.l}`
+      ];
+
+      const data = [];
+      
+      // Header row
+      const headerRow = [];
+      activeISFs.forEach((isf, index) => {
+        headerRow.push(isf);
+        if (index < activeISFs.length - 1) headerRow.push("");
+      });
+      data.push(headerRow);
+
+      // Data rows
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeISFs.forEach((isf, isfIndex) => {
+          const isfLists = lists.filter((l) => {
+            if (l.isf_name !== isf) return false;
+            if (l.created_date) {
+              const d = new Date(l.created_date);
+              return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = isfLists.length;
+          else if (indicatorIndex === 1) value = isfLists.filter(l => l.tip === "Autorizatii").length;
+          else if (indicatorIndex === 2) value = isfLists.filter(l => l.tip === "Vize").length;
+          else if (indicatorIndex === 3) value = isfLists.filter(l => l.tip === "Duplicate").length;
+          else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
+          else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
+          else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
+          else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
+          else if (indicatorIndex === 8) {
+            value = lists.filter((l) => {
+              if (l.isf_name !== isf) return false;
+              if (l.trimis_at) {
+                const d = new Date(l.trimis_at);
+                return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+              }
+              return false;
+            }).length;
           }
-          return false;
-        }).length;
 
-        const totalAutorizatii = isfLists.filter((l) => l.tip === "Autorizatii").length;
-        const totalVize = isfLists.filter((l) => l.tip === "Vize").length;
-        const totalDuplicate = isfLists.filter((l) => l.tip === "Duplicate").length;
-        const totalSchimbareNume = isfLists.filter((l) => l.tip === "Schimbare nume").length;
-
-        // Add ISF block
-        data.push([`Isf (${isf})`, "Valoare"]);
-        data.push(["Total Liste", isfLists.length]);
-        data.push(["Total Autorizații", totalAutorizatii]);
-        data.push(["Total Vize", totalVize]);
-        data.push(["Total Duplicate", totalDuplicate]);
-        data.push(["Total Schimbare nume", totalSchimbareNume]);
-        data.push(["Primite", isfLists.filter((l) => l.status === "PRIMITA").length]);
-        data.push(["Verificate", isfLists.filter((l) => l.status === "VERIFICATA").length]);
-        data.push(["Trimise", isfLists.filter((l) => l.status === "TRIMISA").length]);
-        data.push([`Trimise ${month.l}`, trimiseInLuna]);
-
-        // Add empty row between blocks (except after last one)
-        if (index < allISFs.length - 1) {
-          data.push(["", ""]);
-        }
+          row.push(`${indicator}: ${value}`);
+          if (isfIndex < activeISFs.length - 1) row.push("");
+        });
+        data.push(row);
       });
 
       const worksheet = XLSX.utils.aoa_to_sheet(data);
 
-      // Apply borders to each ISF block
-      let blockStart = 0;
-      allISFs.forEach((isf, index) => {
-        const blockEnd = blockStart + 9;
-        
-        for (let R = blockStart; R <= blockEnd; R++) {
-          for (let C = 0; C <= 1; C++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-            if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
-            
-            worksheet[cellAddress].s.border = {
-              top: R === blockStart ? { style: 'thin' } : undefined,
-              bottom: R === blockEnd ? { style: 'thin' } : undefined,
-              left: C === 0 ? { style: 'thin' } : undefined,
-              right: C === 1 ? { style: 'thin' } : undefined
-            };
-          }
+      // Apply borders
+      activeISFs.forEach((isf, isfIndex) => {
+        const colIndex = isfIndex * 2;
+        for (let R = 0; R <= 9; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+          if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
+          
+          worksheet[cellAddress].s.border = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' },
+            right: { style: 'thin' }
+          };
         }
-        
-        blockStart = blockEnd + 2;
       });
 
       XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
     });
 
-    // Create total year sheet with all ISFs
-    const yearData = [];
-    allISFs.forEach((isf, index) => {
-      const isfLists = lists.filter((l) => {
+    // Create total year sheet
+    const activeISFsYear = allISFs.filter(isf => {
+      return lists.some(l => {
         if (l.isf_name !== isf) return false;
         if (l.created_date) {
           const d = new Date(l.created_date);
@@ -419,65 +513,89 @@ export default function Dashboard({ user }) {
         }
         return false;
       });
-
-      const trimiseInAn = lists.filter((l) => {
-        if (l.isf_name !== isf) return false;
-        if (l.trimis_at) {
-          const d = new Date(l.trimis_at);
-          return getYear(d) === currentYear;
-        }
-        return false;
-      }).length;
-
-      const totalAutorizatii = isfLists.filter((l) => l.tip === "Autorizatii").length;
-      const totalVize = isfLists.filter((l) => l.tip === "Vize").length;
-      const totalDuplicate = isfLists.filter((l) => l.tip === "Duplicate").length;
-      const totalSchimbareNume = isfLists.filter((l) => l.tip === "Schimbare nume").length;
-
-      yearData.push([`Isf (${isf})`, "Valoare"]);
-      yearData.push(["Total Liste", isfLists.length]);
-      yearData.push(["Total Autorizații", totalAutorizatii]);
-      yearData.push(["Total Vize", totalVize]);
-      yearData.push(["Total Duplicate", totalDuplicate]);
-      yearData.push(["Total Schimbare nume", totalSchimbareNume]);
-      yearData.push(["Primite", isfLists.filter((l) => l.status === "PRIMITA").length]);
-      yearData.push(["Verificate", isfLists.filter((l) => l.status === "VERIFICATA").length]);
-      yearData.push(["Trimise", isfLists.filter((l) => l.status === "TRIMISA").length]);
-      yearData.push([`Trimise ${currentYear}`, trimiseInAn]);
-
-      if (index < allISFs.length - 1) {
-        yearData.push(["", ""]);
-      }
     });
 
-    const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+    if (activeISFsYear.length > 0) {
+      const indicators = [
+        "Total Liste",
+        "Total Autorizații",
+        "Total Vize",
+        "Total Duplicate",
+        "Total Schimbare nume",
+        "Primite",
+        "Verificate",
+        "Trimise",
+        `Trimise ${currentYear}`
+      ];
 
-    // Apply borders to year sheet
-    let blockStart = 0;
-    allISFs.forEach((isf, index) => {
-      const blockEnd = blockStart + 9;
+      const yearData = [];
       
-      for (let R = blockStart; R <= blockEnd; R++) {
-        for (let C = 0; C <= 1; C++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+      const headerRow = [];
+      activeISFsYear.forEach((isf, index) => {
+        headerRow.push(isf);
+        if (index < activeISFsYear.length - 1) headerRow.push("");
+      });
+      yearData.push(headerRow);
+
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeISFsYear.forEach((isf, isfIndex) => {
+          const isfLists = lists.filter((l) => {
+            if (l.isf_name !== isf) return false;
+            if (l.created_date) {
+              const d = new Date(l.created_date);
+              return getYear(d) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = isfLists.length;
+          else if (indicatorIndex === 1) value = isfLists.filter(l => l.tip === "Autorizatii").length;
+          else if (indicatorIndex === 2) value = isfLists.filter(l => l.tip === "Vize").length;
+          else if (indicatorIndex === 3) value = isfLists.filter(l => l.tip === "Duplicate").length;
+          else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
+          else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
+          else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
+          else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
+          else if (indicatorIndex === 8) {
+            value = lists.filter((l) => {
+              if (l.isf_name !== isf) return false;
+              if (l.trimis_at) {
+                const d = new Date(l.trimis_at);
+                return getYear(d) === currentYear;
+              }
+              return false;
+            }).length;
+          }
+
+          row.push(`${indicator}: ${value}`);
+          if (isfIndex < activeISFsYear.length - 1) row.push("");
+        });
+        yearData.push(row);
+      });
+
+      const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+
+      activeISFsYear.forEach((isf, isfIndex) => {
+        const colIndex = isfIndex * 2;
+        for (let R = 0; R <= 9; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           if (!yearWorksheet[cellAddress].s) yearWorksheet[cellAddress].s = {};
           
           yearWorksheet[cellAddress].s.border = {
-            top: R === blockStart ? { style: 'thin' } : undefined,
-            bottom: R === blockEnd ? { style: 'thin' } : undefined,
-            left: C === 0 ? { style: 'thin' } : undefined,
-            right: C === 1 ? { style: 'thin' } : undefined
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' },
+            right: { style: 'thin' }
           };
         }
-      }
-      
-      blockStart = blockEnd + 2;
-    });
+      });
 
-    XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+      XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+    }
 
-    // Download the file
     XLSX.writeFile(workbook, `raport-liste-${currentYear}.xlsx`);
   };
 
@@ -488,11 +606,10 @@ export default function Dashboard({ user }) {
     // Create a sheet for each month
     months.forEach((month) => {
       const monthNum = parseInt(month.v);
-      const data = [];
 
-      // Get all organizations and create blocks for each
-      allOrgsFromAtestate.forEach((org, index) => {
-        const orgAtestate = atestate.filter((a) => {
+      // Get organizations that have activity in this month
+      const activeOrgs = allOrgsFromAtestate.filter(org => {
+        return atestate.some(a => {
           if (a.organization_name !== org) return false;
           if (a.created_date) {
             const d = new Date(a.created_date);
@@ -500,62 +617,89 @@ export default function Dashboard({ user }) {
           }
           return false;
         });
+      });
 
-        const trimiseInLuna = atestate.filter((a) => {
-          if (a.organization_name !== org) return false;
-          if (a.trimis_at) {
-            const d = new Date(a.trimis_at);
-            return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+      if (activeOrgs.length === 0) {
+        const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+        return;
+      }
+
+      const indicators = [
+        "Total Atestate",
+        "Primite",
+        "Verificate",
+        "Trimise",
+        `Trimise ${month.l}`
+      ];
+
+      const data = [];
+      
+      const headerRow = [];
+      activeOrgs.forEach((org, index) => {
+        headerRow.push(org);
+        if (index < activeOrgs.length - 1) headerRow.push("");
+      });
+      data.push(headerRow);
+
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeOrgs.forEach((org, orgIndex) => {
+          const orgAtestate = atestate.filter((a) => {
+            if (a.organization_name !== org) return false;
+            if (a.created_date) {
+              const d = new Date(a.created_date);
+              return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = orgAtestate.length;
+          else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
+          else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
+          else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
+          else if (indicatorIndex === 4) {
+            value = atestate.filter((a) => {
+              if (a.organization_name !== org) return false;
+              if (a.trimis_at) {
+                const d = new Date(a.trimis_at);
+                return getMonth(d) + 1 === monthNum && getYear(d) === currentYear;
+              }
+              return false;
+            }).length;
           }
-          return false;
-        }).length;
 
-        // Add organization block
-        data.push([`Organizație (${org})`, "Valoare"]);
-        data.push(["Total Atestate", orgAtestate.length]);
-        data.push(["Primite", orgAtestate.filter((a) => a.status === "PRIMITA").length]);
-        data.push(["Verificate", orgAtestate.filter((a) => a.status === "VERIFICATA").length]);
-        data.push(["Trimise", orgAtestate.filter((a) => a.status === "TRIMISA").length]);
-        data.push([`Trimise ${month.l}`, trimiseInLuna]);
-
-        // Add empty row between blocks (except after last one)
-        if (index < allOrgsFromAtestate.length - 1) {
-          data.push(["", ""]);
-        }
+          row.push(`${indicator}: ${value}`);
+          if (orgIndex < activeOrgs.length - 1) row.push("");
+        });
+        data.push(row);
       });
 
       const worksheet = XLSX.utils.aoa_to_sheet(data);
 
-      // Apply borders to each organization block
-      let blockStart = 0;
-      allOrgsFromAtestate.forEach((org, index) => {
-        const blockEnd = blockStart + 5;
-        
-        for (let R = blockStart; R <= blockEnd; R++) {
-          for (let C = 0; C <= 1; C++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
-            if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
-            
-            worksheet[cellAddress].s.border = {
-              top: R === blockStart ? { style: 'thin' } : undefined,
-              bottom: R === blockEnd ? { style: 'thin' } : undefined,
-              left: C === 0 ? { style: 'thin' } : undefined,
-              right: C === 1 ? { style: 'thin' } : undefined
-            };
-          }
+      activeOrgs.forEach((org, orgIndex) => {
+        const colIndex = orgIndex * 2;
+        for (let R = 0; R <= 5; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+          if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+          if (!worksheet[cellAddress].s) worksheet[cellAddress].s = {};
+          
+          worksheet[cellAddress].s.border = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' },
+            right: { style: 'thin' }
+          };
         }
-        
-        blockStart = blockEnd + 2;
       });
 
       XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
     });
 
-    // Create total year sheet with all organizations
-    const yearData = [];
-    allOrgsFromAtestate.forEach((org, index) => {
-      const orgAtestate = atestate.filter((a) => {
+    // Create total year sheet
+    const activeOrgsYear = allOrgsFromAtestate.filter(org => {
+      return atestate.some(a => {
         if (a.organization_name !== org) return false;
         if (a.created_date) {
           const d = new Date(a.created_date);
@@ -563,56 +707,81 @@ export default function Dashboard({ user }) {
         }
         return false;
       });
-
-      const trimiseInAn = atestate.filter((a) => {
-        if (a.organization_name !== org) return false;
-        if (a.trimis_at) {
-          const d = new Date(a.trimis_at);
-          return getYear(d) === currentYear;
-        }
-        return false;
-      }).length;
-
-      yearData.push([`Organizație (${org})`, "Valoare"]);
-      yearData.push(["Total Atestate", orgAtestate.length]);
-      yearData.push(["Primite", orgAtestate.filter((a) => a.status === "PRIMITA").length]);
-      yearData.push(["Verificate", orgAtestate.filter((a) => a.status === "VERIFICATA").length]);
-      yearData.push(["Trimise", orgAtestate.filter((a) => a.status === "TRIMISA").length]);
-      yearData.push([`Trimise ${currentYear}`, trimiseInAn]);
-
-      if (index < allOrgsFromAtestate.length - 1) {
-        yearData.push(["", ""]);
-      }
     });
 
-    const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+    if (activeOrgsYear.length > 0) {
+      const indicators = [
+        "Total Atestate",
+        "Primite",
+        "Verificate",
+        "Trimise",
+        `Trimise ${currentYear}`
+      ];
 
-    // Apply borders to year sheet
-    let blockStart = 0;
-    allOrgsFromAtestate.forEach((org, index) => {
-      const blockEnd = blockStart + 5;
+      const yearData = [];
       
-      for (let R = blockStart; R <= blockEnd; R++) {
-        for (let C = 0; C <= 1; C++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+      const headerRow = [];
+      activeOrgsYear.forEach((org, index) => {
+        headerRow.push(org);
+        if (index < activeOrgsYear.length - 1) headerRow.push("");
+      });
+      yearData.push(headerRow);
+
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeOrgsYear.forEach((org, orgIndex) => {
+          const orgAtestate = atestate.filter((a) => {
+            if (a.organization_name !== org) return false;
+            if (a.created_date) {
+              const d = new Date(a.created_date);
+              return getYear(d) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = orgAtestate.length;
+          else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
+          else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
+          else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
+          else if (indicatorIndex === 4) {
+            value = atestate.filter((a) => {
+              if (a.organization_name !== org) return false;
+              if (a.trimis_at) {
+                const d = new Date(a.trimis_at);
+                return getYear(d) === currentYear;
+              }
+              return false;
+            }).length;
+          }
+
+          row.push(`${indicator}: ${value}`);
+          if (orgIndex < activeOrgsYear.length - 1) row.push("");
+        });
+        yearData.push(row);
+      });
+
+      const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+
+      activeOrgsYear.forEach((org, orgIndex) => {
+        const colIndex = orgIndex * 2;
+        for (let R = 0; R <= 5; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           if (!yearWorksheet[cellAddress].s) yearWorksheet[cellAddress].s = {};
           
           yearWorksheet[cellAddress].s.border = {
-            top: R === blockStart ? { style: 'thin' } : undefined,
-            bottom: R === blockEnd ? { style: 'thin' } : undefined,
-            left: C === 0 ? { style: 'thin' } : undefined,
-            right: C === 1 ? { style: 'thin' } : undefined
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+            left: { style: 'thin' },
+            right: { style: 'thin' }
           };
         }
-      }
-      
-      blockStart = blockEnd + 2;
-    });
+      });
 
-    XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+      XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+    }
 
-    // Download the file
     XLSX.writeFile(workbook, `raport-atestate-${currentYear}.xlsx`);
   };
 
