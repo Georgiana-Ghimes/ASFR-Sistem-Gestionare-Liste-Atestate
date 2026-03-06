@@ -55,4 +55,7 @@ Testing/
 # Documentation
 documentatie/
 
+# Deployment
+deployment/
+
 .env
