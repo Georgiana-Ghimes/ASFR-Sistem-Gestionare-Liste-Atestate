@@ -274,7 +274,7 @@ export default function Dashboard({ user }) {
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 7 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -381,7 +381,7 @@ export default function Dashboard({ user }) {
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 4 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -491,7 +491,7 @@ export default function Dashboard({ user }) {
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 7 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -584,7 +584,7 @@ export default function Dashboard({ user }) {
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 7 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -685,7 +685,7 @@ export default function Dashboard({ user }) {
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 4 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -770,7 +770,7 @@ export default function Dashboard({ user }) {
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 4 ? { style: 'thin', color: { rgb: "000000" } } : (R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined),
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
