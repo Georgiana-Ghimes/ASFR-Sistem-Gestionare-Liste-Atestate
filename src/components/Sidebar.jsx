@@ -47,15 +47,17 @@ export default function Sidebar({ user }) {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 flex flex-col shadow-2xl">
+    <aside className="w-64 min-h-screen bg-slate-800 flex flex-col shadow-2xl">
       <div className="px-6 py-8 border-b border-slate-700/60">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center p-1">
+          <div className="w-16 h-16 rounded-lg bg-white flex items-center justify-center p-2">
             <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
           <div>
+            <p className="text-slate-500 text-[10px] leading-tight">Sistem de gestionare</p>
             <p className="text-white font-bold text-sm leading-tight">Liste/Atestate</p>
             <p className="text-slate-400 text-xs">ASFR</p>
+            <p className="text-slate-500 text-[10px] mt-0.5">v1.0.0</p>
           </div>
         </div>
       </div>
@@ -71,7 +73,7 @@ export default function Sidebar({ user }) {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                 isActive
                   ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  : "text-slate-300 hover:text-white hover:bg-slate-700"
               }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -95,7 +97,7 @@ export default function Sidebar({ user }) {
       <div className="px-3 pb-6">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
         >
           <LogOut className="w-4 h-4" />
           Deconectare
