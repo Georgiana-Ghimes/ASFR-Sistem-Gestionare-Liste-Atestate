@@ -205,7 +205,6 @@ export default function Dashboard({ user }) {
       "Total Schimbare nume",
       "Primite",
       "Verificate",
-      "Trimise",
       `Trimise ${monthName}`
     ];
 
@@ -242,8 +241,7 @@ export default function Dashboard({ user }) {
         else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
         else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
         else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
-        else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
-        else if (indicatorIndex === 8) {
+        else if (indicatorIndex === 7) {
           value = lists.filter((l) => {
             if (l.isf_name !== isf) return false;
             if (l.trimis_at) {
@@ -268,15 +266,15 @@ export default function Dashboard({ user }) {
     activeISFs.forEach((isf, isfIndex) => {
       const colIndex = isfIndex * 2; // Each block is 2 columns apart (1 data + 1 empty)
       
-      // Apply border around the entire block (header + 9 data rows)
-      for (let R = 0; R <= 9; R++) {
+      // Apply border around the entire block (header + 7 data rows)
+      for (let R = 0; R <= 7; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
         
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -319,7 +317,6 @@ export default function Dashboard({ user }) {
       "Total Atestate",
       "Primite",
       "Verificate",
-      "Trimise",
       `Trimise ${monthName}`
     ];
 
@@ -352,8 +349,7 @@ export default function Dashboard({ user }) {
         if (indicatorIndex === 0) value = orgAtestate.length;
         else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
         else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
-        else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
-        else if (indicatorIndex === 4) {
+        else if (indicatorIndex === 3) {
           value = atestate.filter((a) => {
             if (a.organization_name !== org) return false;
             if (a.trimis_at) {
@@ -378,14 +374,14 @@ export default function Dashboard({ user }) {
     activeOrgs.forEach((org, orgIndex) => {
       const colIndex = orgIndex * 2;
       
-      for (let R = 0; R <= 5; R++) {
+      for (let R = 0; R <= 4; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
         
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -854,11 +850,10 @@ export default function Dashboard({ user }) {
       ) : (
         <>
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCard title={`Total ${kpiLabel}`} value={currentKpi.total} icon={List} color="slate" />
             <StatsCard title="PRIMITE" value={currentKpi.primita} icon={Clock} color="amber" />
             <StatsCard title="VERIFICATE" value={currentKpi.verificata} icon={CheckCircle} color="blue" />
-            <StatsCard title="TRIMISE" value={currentKpi.trimisa} icon={Send} color="emerald" />
             <StatsCard title={`Trimise ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`} value={currentKpi.trimisaLuna} icon={Calendar} color="violet" />
           </div>
 
@@ -924,7 +919,7 @@ export default function Dashboard({ user }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ISF / CISF / SCSC", "Total Liste", "Total Autorizații", "Total Vize", "Total Duplicate", "Total Schimbare nume", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
+                      {["ISF / CISF / SCSC", "Total Liste", "Total Autorizații", "Total Vize", "Total Duplicate", "Total Schimbare nume", "PRIMITE", "VERIFICATE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
                         <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -934,7 +929,7 @@ export default function Dashboard({ user }) {
                   <tbody className="divide-y divide-gray-50">
                     {isfStats.length === 0 ? (
                       <tr>
-                        <td colSpan={10} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        <td colSpan={9} className="px-6 py-12 text-center text-gray-400 text-sm">
                           Nu există date disponibile.
                         </td>
                       </tr>
@@ -955,11 +950,6 @@ export default function Dashboard({ user }) {
                           <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                               {row.verificata}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                              {row.trimisa}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -1003,7 +993,7 @@ export default function Dashboard({ user }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ISF / CISF / SCSC", "Total Atestate", "PRIMITE", "VERIFICATE", "TRIMISE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
+                      {["ISF / CISF / SCSC", "Total Atestate", "PRIMITE", "VERIFICATE", `Trimise ${months.find(m => m.v === filterMonth)?.l}`].map((h) => (
                         <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -1013,7 +1003,7 @@ export default function Dashboard({ user }) {
                   <tbody className="divide-y divide-gray-50">
                     {atestateStats.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
                           Nu există date disponibile.
                         </td>
                       </tr>
@@ -1030,11 +1020,6 @@ export default function Dashboard({ user }) {
                           <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                               {row.verificata}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                              {row.trimisa}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
