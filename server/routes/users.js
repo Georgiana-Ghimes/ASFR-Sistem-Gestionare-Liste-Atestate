@@ -198,7 +198,7 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
       'UPDATE_USER',
       'users',
       id,
-      { email, role, updated_fields: Object.keys(req.body) },
+      { updated_email: result.rows[0].email, role: result.rows[0].role, updated_fields: Object.keys(req.body) },
       req.ip
     );
 

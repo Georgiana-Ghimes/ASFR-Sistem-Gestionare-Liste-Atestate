@@ -111,6 +111,74 @@ export default function Settings({ user }) {
     }
   };
 
+  const formatAuditDetails = (log) => {
+    try {
+      const details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+      
+      switch (log.action_type) {
+        case 'CREATE_LIST':
+        case 'CREATE_LISTA':
+          return details.numar_lista ? `Nr. Comisie: ${details.numar_lista}` : '-';
+        
+        case 'CREATE_ATESTAT':
+          return details.numar_atestat_format || details.numar_atestat 
+            ? `Nr. Atestat: ${details.numar_atestat_format || details.numar_atestat}` 
+            : '-';
+        
+        case 'CREATE_USER':
+          return details.email ? `User: ${details.email}` : '-';
+        
+        case 'UPDATE_USER':
+          return details.updated_email ? `User: ${details.updated_email}` : '-';
+        
+        case 'UPDATE_LIST_STATUS':
+          return details.numar_lista && details.new_status 
+            ? `${details.numar_lista}, Status: ${details.new_status}` 
+            : '-';
+        
+        case 'UPDATE_ATESTAT_STATUS':
+          return details.numar_atestat_format && details.new_status 
+            ? `${details.numar_atestat_format}, Status: ${details.new_status}` 
+            : '-';
+        
+        case 'UPDATE_STATUS':
+          // Legacy support for old UPDATE_STATUS entries
+          if (log.entity_type === 'liste_tiparire') {
+            return details.numar_lista && details.new_status 
+              ? `${details.numar_lista}, Status: ${details.new_status}` 
+              : '-';
+          } else if (log.entity_type === 'atestate') {
+            return details.numar_atestat_format && details.new_status 
+              ? `${details.numar_atestat_format}, Status: ${details.new_status}` 
+              : '-';
+          }
+          return '-';
+        
+        case 'DELETE_LIST':
+        case 'DELETE_LISTA':
+          return details.numar_lista ? `Nr. Comisie: ${details.numar_lista}` : '-';
+        
+        case 'DELETE_ATESTAT':
+          return details.numar_atestat_format || details.numar_atestat 
+            ? `Nr. Atestat: ${details.numar_atestat_format || details.numar_atestat}` 
+            : '-';
+        
+        case 'DELETE_USER':
+          return details.deleted_email ? `User: ${details.deleted_email}` : '-';
+        
+        case 'LOGIN':
+        case 'LOGOUT':
+          return '-';
+        
+        default:
+          return '-';
+      }
+    } catch (error) {
+      console.error('Error formatting audit details:', error);
+      return '-';
+    }
+  };
+
   const showNotification = (type, message) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 4000);
@@ -537,7 +605,7 @@ export default function Settings({ user }) {
               )}
               <button
                 onClick={() => {
-                  const headers = ["Data & Ora", "Utilizator", "Acțiune", "Entitate"];
+                  const headers = ["Data & Ora", "Utilizator", "Acțiune", "Entitate", "Detalii"];
                   const rows = auditLogs.map((log) => [
                     new Date(log.created_at).toLocaleString('ro-RO', {
                       year: 'numeric',
@@ -549,7 +617,8 @@ export default function Settings({ user }) {
                     }),
                     log.user_email,
                     log.action_type,
-                    log.entity_type
+                    log.entity_type,
+                    formatAuditDetails(log)
                   ]);
                   const csvContent = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
                   const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
@@ -628,12 +697,13 @@ export default function Settings({ user }) {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Utilizator</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiune</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Entitate</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Detalii</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {auditLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
                         Nu există înregistrări în jurnalul de audit.
                       </td>
                     </tr>
@@ -665,6 +735,7 @@ export default function Settings({ user }) {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">{log.entity_type}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{formatAuditDetails(log)}</td>
                       </tr>
                     ))
                   )}

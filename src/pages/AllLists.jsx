@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
-import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, Trash2 } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, Filter, Download, Eye, Trash2, List } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "react-router-dom";
 
@@ -33,6 +33,8 @@ export default function AllLists({ user }) {
   const [pdfModal, setPdfModal] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [highlightId, setHighlightId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     load();
@@ -130,6 +132,17 @@ export default function AllLists({ user }) {
       return 0;
     });
 
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filtered.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, filterISF, filterFrom, filterTo, search, itemsPerPage]);
+
   const handleExport = () => {
     const headers = [
       "ISF / CISF / SCSC", "Număr Comisie", "Tip", "Nr. Autorizații", "Status",
@@ -187,8 +200,11 @@ export default function AllLists({ user }) {
 
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Administrare Liste</h1>
-          <p className="text-gray-500 mt-1 text-sm">Gestionarea completă a tuturor listelor de tipărire autorizații.</p>
+          <div className="flex items-center gap-3 mb-2">
+            <List className="w-8 h-8 text-pink-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Administrare Liste</h1>
+          </div>
+          <p className="text-gray-500 text-sm">Gestionarea completă a tuturor listelor de tipărire autorizații.</p>
         </div>
         <button
           onClick={handleExport}
@@ -291,14 +307,14 @@ export default function AllLists({ user }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.length === 0 ? (
+                {paginatedData.length === 0 ? (
                   <tr>
                     <td colSpan={COLUMNS.length} className="px-6 py-16 text-center text-gray-400 text-sm">
                       Nu există liste care să corespundă filtrelor selectate.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((l) => (
+                  paginatedData.map((l) => (
                     <tr 
                       key={l.id} 
                       id={`list-row-${l.id}`}
@@ -411,8 +427,61 @@ export default function AllLists({ user }) {
           </div>
         )}
         {!loading && (
-          <div className="px-6 py-3 border-t border-gray-50 bg-gray-50/50">
-            <p className="text-xs text-gray-400">{filtered.length} înregistrări afișate din {lists.length} total</p>
+          <div className="px-6 py-3 border-t border-gray-50 bg-gray-50/50 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <p className="text-xs text-gray-400">
+                Afișare {startIndex + 1}-{Math.min(endIndex, filtered.length)} din {filtered.length} înregistrări
+              </p>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-500">Intrări per pagină:</label>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={500}>500</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Prima
+                </button>
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs text-gray-600">
+                  Pagina {currentPage} din {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Următor
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Ultima
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

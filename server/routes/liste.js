@@ -156,6 +156,14 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
       return res.status(400).json({ error: 'Status invalid' });
     }
 
+    // Get old status and numar_lista before update
+    const oldData = await pool.query('SELECT status, numar_lista FROM liste_tiparire WHERE id = $1', [id]);
+    if (oldData.rows.length === 0) {
+      return res.status(404).json({ error: 'Lista negasita' });
+    }
+    const oldStatus = oldData.rows[0].status;
+    const numarLista = oldData.rows[0].numar_lista;
+
     let updateQuery = 'UPDATE liste_tiparire SET status = $1, updated_at = CURRENT_TIMESTAMP';
     const params = [status];
 
@@ -183,10 +191,10 @@ router.patch('/:id/status', authenticateToken, requireRole('admin'), async (req,
     // Audit log
     await logAudit(
       req.user.email,
-      'UPDATE_STATUS',
+      'UPDATE_LIST_STATUS',
       'liste_tiparire',
       id,
-      { old_status: result.rows[0].status, new_status: status },
+      { numar_lista: numarLista, old_status: oldStatus, new_status: status },
       req.ip
     );
     

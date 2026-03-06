@@ -215,7 +215,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
     const { id } = req.params;
 
-    const result = await pool.query('DELETE FROM atestate WHERE id = $1 RETURNING id, numar_atestat', [id]);
+    const result = await pool.query('DELETE FROM atestate WHERE id = $1 RETURNING id, numar_atestat, numar_atestat_format', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Atestat negasit' });
@@ -227,7 +227,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       'DELETE_ATESTAT',
       'atestate',
       id,
-      { numar_atestat: result.rows[0].numar_atestat },
+      { numar_atestat: result.rows[0].numar_atestat, numar_atestat_format: result.rows[0].numar_atestat_format },
       req.ip
     );
 
@@ -252,6 +252,14 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     if (!['PRIMITA', 'VERIFICATA', 'TRIMISA'].includes(status)) {
       return res.status(400).json({ error: 'Status invalid' });
     }
+
+    // Get old status and numar_atestat_format before update
+    const oldData = await pool.query('SELECT status, numar_atestat_format FROM atestate WHERE id = $1', [id]);
+    if (oldData.rows.length === 0) {
+      return res.status(404).json({ error: 'Atestat negasit' });
+    }
+    const oldStatus = oldData.rows[0].status;
+    const numarAtestatFormat = oldData.rows[0].numar_atestat_format;
 
     let updateQuery = 'UPDATE atestate SET status = $1, updated_at = NOW()';
     const params = [status];
@@ -280,10 +288,10 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
     // Audit log
     await logAudit(
       req.user.email,
-      'UPDATE_STATUS',
+      'UPDATE_ATESTAT_STATUS',
       'atestate',
       id,
-      { new_status: status },
+      { numar_atestat_format: numarAtestatFormat, old_status: oldStatus, new_status: status },
       req.ip
     );
 

@@ -18,6 +18,8 @@ export default function MyAtestate({ user }) {
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     const load = async () => {
@@ -128,6 +130,17 @@ export default function MyAtestate({ user }) {
     if (search && !a.numar_atestat_format?.toLowerCase().startsWith(search.toLowerCase())) return false;
     return true;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filtered.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, filterFrom, filterTo, search, itemsPerPage]);
 
   if (!user || !user.has_atestate_role) {
     return (
@@ -264,11 +277,12 @@ export default function MyAtestate({ user }) {
               <p className="text-gray-500 text-sm">Nu există atestate care să corespundă filtrelor selectate.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Seria</th>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Seria</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Numărul</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Data</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Nume</th>
@@ -282,7 +296,7 @@ export default function MyAtestate({ user }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((a) => (
+                  {paginatedData.map((a) => (
                     <tr 
                       key={a.id} 
                       id={`atestat-row-${a.id}`}
@@ -355,6 +369,65 @@ export default function MyAtestate({ user }) {
                 </tbody>
               </table>
             </div>
+            {!loading && (
+              <div className="px-6 py-3 border-t border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <p className="text-xs text-gray-400">
+                    Afișare {startIndex + 1}-{Math.min(endIndex, filtered.length)} din {filtered.length} înregistrări
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-500">Intrări per pagină:</label>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                      className="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={500}>500</option>
+                    </select>
+                  </div>
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Prima
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <span className="text-xs text-gray-600">
+                      Pagina {currentPage} din {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Următor
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Ultima
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            </>
           )
         ) : (
           <div className="fixed top-[11rem] left-64 right-0 bottom-0 bg-white z-10">
