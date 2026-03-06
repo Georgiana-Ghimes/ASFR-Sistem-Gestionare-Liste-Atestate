@@ -57,6 +57,12 @@ export default function Dashboard({ user }) {
 
   const filteredByStat = lists.filter((l) => {
     if (filterISF && l.isf_name !== filterISF) return false;
+    // Filter by created_date for selected month/year
+    if (l.created_date) {
+      const d = new Date(l.created_date);
+      if (getMonth(d) + 1 !== nowMonth) return false;
+      if (getYear(d) !== nowYear) return false;
+    } else return false;
     return true;
   });
 
@@ -74,6 +80,12 @@ export default function Dashboard({ user }) {
   // Filter atestate
   const filteredAtestateByStat = atestate.filter((a) => {
     if (filterISF && a.organization_name !== filterISF) return false;
+    // Filter by created_date for selected month/year
+    if (a.created_date) {
+      const d = new Date(a.created_date);
+      if (getMonth(d) + 1 !== nowMonth) return false;
+      if (getYear(d) !== nowYear) return false;
+    } else return false;
     return true;
   });
 
