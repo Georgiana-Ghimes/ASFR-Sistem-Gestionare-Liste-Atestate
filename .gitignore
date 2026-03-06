@@ -34,6 +34,9 @@ server/.env.local
 server/uploads/*
 !server/uploads/.gitkeep
 
+# Scripts (development only)
+server/scripts/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
