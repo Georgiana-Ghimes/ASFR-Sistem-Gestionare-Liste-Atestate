@@ -61,8 +61,9 @@ async function setupDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_liste_data ON liste_tiparire(data_lista)');
     console.log('✅ Indexes created');
 
-    // Insert demo users
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    // Insert demo users (for development/testing only)
+    const demoPassword = process.env.DEMO_PASSWORD || 'ChangeMe123!';
+    const hashedPassword = await bcrypt.hash(demoPassword, 10);
     
     await client.query(`
       INSERT INTO users (email, password, role, isf_name, cisf_name) 
@@ -80,10 +81,11 @@ async function setupDatabase() {
     ]);
     console.log('✅ Demo users created');
     console.log('\n📋 Demo credentials:');
-    console.log('   Admin: admin@test.com / password123');
-    console.log('   CISF: cisf@test.com / password123');
-    console.log('   ISF București: isf.bucuresti@test.com / password123');
-    console.log('   ISF Cluj: isf.cluj@test.com / password123\n');
+    console.log('   Admin: admin@test.com / [password from DEMO_PASSWORD env var]');
+    console.log('   CISF: cisf@test.com / [password from DEMO_PASSWORD env var]');
+    console.log('   ISF București: isf.bucuresti@test.com / [password from DEMO_PASSWORD env var]');
+    console.log('   ISF Cluj: isf.cluj@test.com / [password from DEMO_PASSWORD env var]');
+    console.log('\n   Set DEMO_PASSWORD environment variable to change the default password\n');
 
     console.log('✅ Database setup complete!');
   } catch (error) {
