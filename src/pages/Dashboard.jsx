@@ -266,15 +266,15 @@ export default function Dashboard({ user }) {
     activeISFs.forEach((isf, isfIndex) => {
       const colIndex = isfIndex * 2; // Each block is 2 columns apart (1 data + 1 empty)
       
-      // Apply border around the entire block (header + 7 data rows)
-      for (let R = 0; R <= 7; R++) {
+      // Apply border around the entire block (header + 8 data rows)
+      for (let R = 0; R <= 8; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
         
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: (R === 0 || R === 7) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: (R === 0 || R === 8) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -374,14 +374,14 @@ export default function Dashboard({ user }) {
     activeOrgs.forEach((org, orgIndex) => {
       const colIndex = orgIndex * 2;
       
-      for (let R = 0; R <= 4; R++) {
+      for (let R = 0; R <= 5; R++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
         if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
         
         worksheet[cellAddress].s = {
           border: {
             top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-            bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: (R === 0 || R === 5) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
             left: { style: 'thin', color: { rgb: "000000" } },
             right: { style: 'thin', color: { rgb: "000000" } }
           },
@@ -484,14 +484,14 @@ export default function Dashboard({ user }) {
       // Apply borders
       activeISFs.forEach((isf, isfIndex) => {
         const colIndex = isfIndex * 2;
-        for (let R = 0; R <= 7; R++) {
+        for (let R = 0; R <= 8; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
           
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: (R === 0 || R === 7) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: (R === 0 || R === 8) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -577,14 +577,14 @@ export default function Dashboard({ user }) {
 
       activeISFsYear.forEach((isf, isfIndex) => {
         const colIndex = isfIndex * 2;
-        for (let R = 0; R <= 7; R++) {
+        for (let R = 0; R <= 8; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: (R === 0 || R === 7) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: (R === 0 || R === 8) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -678,17 +678,17 @@ export default function Dashboard({ user }) {
 
       activeOrgs.forEach((org, orgIndex) => {
         const colIndex = orgIndex * 2;
-        for (let R = 0; R <= 4; R++) {
+        for (let R = 0; R <= 5; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
           
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: (R === 0 || R === 5) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
-            },
+          },
             font: R === 0 ? { bold: true } : undefined
           };
         }
@@ -763,14 +763,14 @@ export default function Dashboard({ user }) {
 
       activeOrgsYear.forEach((org, orgIndex) => {
         const colIndex = orgIndex * 2;
-        for (let R = 0; R <= 4; R++) {
+        for (let R = 0; R <= 5; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: (R === 0 || R === 5) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
