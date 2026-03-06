@@ -428,7 +428,6 @@ export default function Dashboard({ user }) {
         "Total Schimbare nume",
         "Primite",
         "Verificate",
-        "Trimise",
         `Trimise ${month.l}`
       ];
 
@@ -463,8 +462,7 @@ export default function Dashboard({ user }) {
           else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
           else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
           else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
-          else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
-          else if (indicatorIndex === 8) {
+          else if (indicatorIndex === 7) {
             value = lists.filter((l) => {
               if (l.isf_name !== isf) return false;
               if (l.trimis_at) {
@@ -486,14 +484,14 @@ export default function Dashboard({ user }) {
       // Apply borders
       activeISFs.forEach((isf, isfIndex) => {
         const colIndex = isfIndex * 2;
-        for (let R = 0; R <= 9; R++) {
+        for (let R = 0; R <= 7; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
           
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -526,7 +524,6 @@ export default function Dashboard({ user }) {
         "Total Schimbare nume",
         "Primite",
         "Verificate",
-        "Trimise",
         `Trimise ${currentYear}`
       ];
 
@@ -559,8 +556,7 @@ export default function Dashboard({ user }) {
           else if (indicatorIndex === 4) value = isfLists.filter(l => l.tip === "Schimbare nume").length;
           else if (indicatorIndex === 5) value = isfLists.filter(l => l.status === "PRIMITA").length;
           else if (indicatorIndex === 6) value = isfLists.filter(l => l.status === "VERIFICATA").length;
-          else if (indicatorIndex === 7) value = isfLists.filter(l => l.status === "TRIMISA").length;
-          else if (indicatorIndex === 8) {
+          else if (indicatorIndex === 7) {
             value = lists.filter((l) => {
               if (l.isf_name !== isf) return false;
               if (l.trimis_at) {
@@ -581,14 +577,14 @@ export default function Dashboard({ user }) {
 
       activeISFsYear.forEach((isf, isfIndex) => {
         const colIndex = isfIndex * 2;
-        for (let R = 0; R <= 9; R++) {
+        for (let R = 0; R <= 7; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 9 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 7 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -633,7 +629,6 @@ export default function Dashboard({ user }) {
         "Total Atestate",
         "Primite",
         "Verificate",
-        "Trimise",
         `Trimise ${month.l}`
       ];
 
@@ -662,8 +657,7 @@ export default function Dashboard({ user }) {
           if (indicatorIndex === 0) value = orgAtestate.length;
           else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
           else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
-          else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
-          else if (indicatorIndex === 4) {
+          else if (indicatorIndex === 3) {
             value = atestate.filter((a) => {
               if (a.organization_name !== org) return false;
               if (a.trimis_at) {
@@ -684,14 +678,14 @@ export default function Dashboard({ user }) {
 
       activeOrgs.forEach((org, orgIndex) => {
         const colIndex = orgIndex * 2;
-        for (let R = 0; R <= 5; R++) {
+        for (let R = 0; R <= 4; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
           
           worksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
@@ -720,7 +714,6 @@ export default function Dashboard({ user }) {
         "Total Atestate",
         "Primite",
         "Verificate",
-        "Trimise",
         `Trimise ${currentYear}`
       ];
 
@@ -749,8 +742,7 @@ export default function Dashboard({ user }) {
           if (indicatorIndex === 0) value = orgAtestate.length;
           else if (indicatorIndex === 1) value = orgAtestate.filter(a => a.status === "PRIMITA").length;
           else if (indicatorIndex === 2) value = orgAtestate.filter(a => a.status === "VERIFICATA").length;
-          else if (indicatorIndex === 3) value = orgAtestate.filter(a => a.status === "TRIMISA").length;
-          else if (indicatorIndex === 4) {
+          else if (indicatorIndex === 3) {
             value = atestate.filter((a) => {
               if (a.organization_name !== org) return false;
               if (a.trimis_at) {
@@ -771,14 +763,14 @@ export default function Dashboard({ user }) {
 
       activeOrgsYear.forEach((org, orgIndex) => {
         const colIndex = orgIndex * 2;
-        for (let R = 0; R <= 5; R++) {
+        for (let R = 0; R <= 4; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
           if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
           
           yearWorksheet[cellAddress].s = {
             border: {
               top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
-              bottom: R === 0 || R === 5 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: R === 0 || R === 4 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
               left: { style: 'thin', color: { rgb: "000000" } },
               right: { style: 'thin', color: { rgb: "000000" } }
             },
