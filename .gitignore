@@ -52,4 +52,7 @@ Thumbs.db
 # Testing
 Testing/
 
+# Documentation
+documentatie/
+
 .env
