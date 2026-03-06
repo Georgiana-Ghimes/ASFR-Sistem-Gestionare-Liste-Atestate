@@ -209,8 +209,9 @@ router.post('/', authenticateToken, requireAtestateRole, upload.array('files', 2
 // Delete atestat (admin only)
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acces interzis. Este necesar rol de admin.' });
+    // Only georgiana.ghimes can delete atestate
+    if (req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
+      return res.status(403).json({ error: 'Acces interzis. Doar administratorul suprem poate șterge atestate.' });
     }
 
     const { id } = req.params;

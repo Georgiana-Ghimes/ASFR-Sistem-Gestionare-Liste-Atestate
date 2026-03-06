@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge } from "lucide-react";
+import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge, Download } from "lucide-react";
 
 export default function Sidebar({ user }) {
   const location = useLocation();
@@ -56,7 +56,7 @@ export default function Sidebar({ user }) {
           <div>
             <p className="text-slate-500 text-[10px] leading-tight">Sistem de gestionare</p>
             <p className="text-white font-bold text-sm leading-tight">Liste/Atestate</p>
-            <p className="text-slate-400 text-xs">ASFR</p>
+            <p className="text-slate-400 text-xs">ASFR ©</p>
             <p className="text-slate-500 text-[10px] mt-0.5">v1.0.0</p>
           </div>
         </div>
@@ -82,6 +82,17 @@ export default function Sidebar({ user }) {
           );
         })}
       </nav>
+
+      <div className="px-3 pb-4">
+        <a
+          href="/Ghid-Utilizare-Sistem-Gestionare-Liste-Atestate-ASFR.pdf"
+          download="Ghid-Utilizare-Sistem-Gestionare-Liste-Atestate-ASFR.pdf"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
+        >
+          <Download className="w-4 h-4" />
+          Descarcă Documentație
+        </a>
+      </div>
 
       <div className="px-4 py-4 border-t border-slate-700/60">
         <p className="text-slate-400 text-xs mb-1">Conectat ca</p>

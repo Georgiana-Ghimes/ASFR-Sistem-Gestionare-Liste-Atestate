@@ -403,7 +403,7 @@ export default function AllLists({ user }) {
                               </button>
                             </>
                           )}
-                          {user?.role === 'admin' && (
+                          {user?.email === 'georgiana.ghimes@sigurantaferoviara.ro' && (
                             <button
                               onClick={() => handleDelete(l)}
                               disabled={deletingId === l.id}

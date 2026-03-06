@@ -428,6 +428,7 @@ export default function Settings({ user }) {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rol</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Atestate</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Parolă</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Creat La</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
                 </tr>
@@ -516,6 +517,19 @@ export default function Settings({ user }) {
                               <span className="text-gray-400">-</span>
                             )}
                           </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {isEditing ? (
+                          <input
+                            type="password"
+                            value={editingUser.password || ''}
+                            onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+                            placeholder="Lasă gol pentru a păstra parola"
+                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm w-full"
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-400">••••••••</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-400">

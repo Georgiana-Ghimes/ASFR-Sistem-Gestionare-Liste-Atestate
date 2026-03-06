@@ -250,9 +250,14 @@ router.get('/stats', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete list (admin only)
+// Delete list (only georgiana.ghimes)
 router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
+    // Only georgiana.ghimes can delete lists
+    if (req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
+      return res.status(403).json({ error: 'Acces interzis. Doar administratorul suprem poate șterge liste.' });
+    }
+
     const { id } = req.params;
 
     const result = await pool.query('DELETE FROM liste_tiparire WHERE id = $1 RETURNING id, numar_lista', [id]);
