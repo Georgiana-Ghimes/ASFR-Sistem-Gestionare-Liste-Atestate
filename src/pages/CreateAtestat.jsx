@@ -160,7 +160,10 @@ export default function CreateAtestat({ user }) {
 
       await apiClient.createAtestat(formData);
       setSuccess(true);
-      setTimeout(() => navigate('/my-atestate'), 2000);
+      
+      // Redirect based on user role
+      const redirectPath = user.role === 'admin' ? '/all-atestate' : '/my-atestate';
+      setTimeout(() => navigate(redirectPath), 2000);
     } catch (err) {
       // Check if error has existingId (duplicate entry)
       if (err.existingId) {
@@ -174,6 +177,9 @@ export default function CreateAtestat({ user }) {
   };
 
   if (success) {
+    const isAdmin = user.role === 'admin';
+    const redirectMessage = isAdmin ? 'Redirectare către administrare atestate...' : 'Redirectare către atestatele tale...';
+    
     return (
       <div className="min-h-screen flex items-center justify-center p-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 flex flex-col items-center gap-4 max-w-md w-full">
@@ -181,7 +187,7 @@ export default function CreateAtestat({ user }) {
             <CheckCircle className="w-8 h-8 text-emerald-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">Atestat creat cu succes!</h2>
-          <p className="text-gray-500 text-center text-sm">Redirectare către atestatele tale...</p>
+          <p className="text-gray-500 text-center text-sm">{redirectMessage}</p>
         </div>
       </div>
     );

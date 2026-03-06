@@ -119,7 +119,10 @@ export default function CreateList({ user }) {
 
       await apiClient.createList(formData);
       setSuccess(true);
-      setTimeout(() => navigate('/my-lists'), 2000);
+      
+      // Redirect based on user role
+      const redirectPath = user.role === 'admin' ? '/all-lists' : '/my-lists';
+      setTimeout(() => navigate(redirectPath), 2000);
     } catch (err) {
       // Check if error has existingId (duplicate entry)
       if (err.existingId) {
@@ -133,6 +136,9 @@ export default function CreateList({ user }) {
   };
 
   if (success) {
+    const isAdmin = user.role === 'admin';
+    const redirectMessage = isAdmin ? 'Redirectare către administrare liste...' : 'Redirectare către listele tale...';
+    
     return (
       <div className="min-h-screen flex items-center justify-center p-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 flex flex-col items-center gap-4 max-w-md w-full">
@@ -140,7 +146,7 @@ export default function CreateList({ user }) {
             <CheckCircle className="w-8 h-8 text-emerald-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">Listă creată cu succes!</h2>
-          <p className="text-gray-500 text-center text-sm">Redirectare către listele tale...</p>
+          <p className="text-gray-500 text-center text-sm">{redirectMessage}</p>
         </div>
       </div>
     );
