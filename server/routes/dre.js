@@ -307,22 +307,28 @@ router.get('/:id/download', authenticateToken, async (req, res) => {
     res.attachment(`${sanitizedName}.zip`);
     res.setHeader('Content-Type', 'application/zip');
     
+    // Pipe archive to response
     archive.pipe(res);
     
+    // Handle errors
     archive.on('error', (err) => {
       console.error('Archive error:', err);
       throw err;
     });
     
-    allFiles.forEach((fileInfo, index) => {
+    // Add files to archive
+    for (const [index, fileInfo] of allFiles.entries()) {
       const filename = path.basename(fileInfo.url);
       const filePath = path.join(uploadsDir, filename);
       
       if (fs.existsSync(filePath)) {
         archive.file(filePath, { name: `Atasament_${index + 1}_${fileInfo.filename}` });
+      } else {
+        console.warn(`File not found: ${filePath}`);
       }
-    });
+    }
     
+    // Finalize the archive
     await archive.finalize();
     
   } catch (error) {
