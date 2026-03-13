@@ -933,10 +933,10 @@ export default function Dashboard({ user }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {activeTab === "dre" ? (
               <>
-                <StatsCard title="Total DRE" value={currentKpi.total} icon={List} color="slate" />
                 <StatsCard title="NOU" value={currentKpi.nou} icon={Clock} color="green" />
                 <StatsCard title="REÎNNOIT" value={currentKpi.reinnoit} icon={CheckCircle} color="blue" />
                 <StatsCard title="MODIFICAT" value={currentKpi.modificat} icon={Send} color="purple" />
+                <StatsCard title={`Total DRE ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`} value={currentKpi.total} icon={List} color="slate" />
               </>
             ) : (
               <>
@@ -1148,7 +1148,7 @@ export default function Dashboard({ user }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ISF / CISF / SCSC", "Total DRE", "NOU", "REÎNNOIT", "MODIFICAT"].map((h) => (
+                      {["ISF / CISF / SCSC", "NOU", "REÎNNOIT", "MODIFICAT", `Total DRE ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`].map((h) => (
                         <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -1166,7 +1166,6 @@ export default function Dashboard({ user }) {
                       dreStats.map((row) => (
                         <tr key={row.organization_name} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">{row.organization_name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
                           <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
                               {row.nou}
@@ -1182,6 +1181,7 @@ export default function Dashboard({ user }) {
                               {row.modificat}
                             </span>
                           </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
                         </tr>
                       ))
                     )}
