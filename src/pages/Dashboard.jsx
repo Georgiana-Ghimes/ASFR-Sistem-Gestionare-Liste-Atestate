@@ -869,6 +869,272 @@ export default function Dashboard({ user }) {
     XLSX.writeFile(workbook, `raport-atestate-${currentYear}.xlsx`);
   };
 
+  const handleGenerateDreReport = () => {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const monthName = months.find(m => m.v === String(currentMonth).padStart(2, "0"))?.l;
+    
+    const workbook = XLSX.utils.book_new();
+
+    // Get organizations that have activity in current month
+    const activeOrgs = allOrgsFromDre.filter(org => {
+      return dre.some(d => {
+        if (d.organization_name !== org) return false;
+        if (d.created_at) {
+          const dt = new Date(d.created_at);
+          return getMonth(dt) + 1 === currentMonth && getYear(dt) === currentYear;
+        }
+        return false;
+      });
+    });
+
+    if (activeOrgs.length === 0) {
+      const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
+      XLSX.writeFile(workbook, `raport-dre-${monthName.toLowerCase()}-${currentYear}.xlsx`);
+      return;
+    }
+
+    const indicators = [
+      "Total DRE",
+      "NOU",
+      "REÎNNOIT",
+      "MODIFICAT"
+    ];
+
+    const data = [];
+    
+    // First row: Organization names
+    const headerRow = [];
+    activeOrgs.forEach((org, index) => {
+      headerRow.push(org);
+      if (index < activeOrgs.length - 1) {
+        headerRow.push("");
+      }
+    });
+    data.push(headerRow);
+
+    // Data rows
+    indicators.forEach((indicator, indicatorIndex) => {
+      const row = [];
+      activeOrgs.forEach((org, orgIndex) => {
+        const orgDre = dre.filter((d) => {
+          if (d.organization_name !== org) return false;
+          if (d.created_at) {
+            const dt = new Date(d.created_at);
+            return getMonth(dt) + 1 === currentMonth && getYear(dt) === currentYear;
+          }
+          return false;
+        });
+
+        let value = 0;
+        if (indicatorIndex === 0) value = orgDre.length;
+        else if (indicatorIndex === 1) value = orgDre.filter(d => d.tip_declaratie === "noua").length;
+        else if (indicatorIndex === 2) value = orgDre.filter(d => d.tip_declaratie === "reinnoita").length;
+        else if (indicatorIndex === 3) value = orgDre.filter(d => d.tip_declaratie === "modificata").length;
+
+        row.push(`${indicator}: ${value}`);
+        if (orgIndex < activeOrgs.length - 1) {
+          row.push("");
+        }
+      });
+      data.push(row);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+    // Apply borders
+    activeOrgs.forEach((org, orgIndex) => {
+      const colIndex = orgIndex * 2;
+      
+      for (let R = 0; R <= 4; R++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+        if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+        
+        worksheet[cellAddress].s = {
+          border: {
+            top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+            left: { style: 'thin', color: { rgb: "000000" } },
+            right: { style: 'thin', color: { rgb: "000000" } }
+          },
+          font: R === 0 ? { bold: true } : undefined
+        };
+      }
+    });
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, monthName);
+    XLSX.writeFile(workbook, `raport-dre-${monthName.toLowerCase()}-${currentYear}.xlsx`);
+  };
+
+  const handleGenerateDreYearReport = () => {
+    const currentYear = new Date().getFullYear();
+    const workbook = XLSX.utils.book_new();
+
+    // Create a sheet for each month
+    months.forEach((month) => {
+      const monthNum = parseInt(month.v);
+
+      // Get organizations that have activity in this month
+      const activeOrgs = allOrgsFromDre.filter(org => {
+        return dre.some(d => {
+          if (d.organization_name !== org) return false;
+          if (d.created_at) {
+            const dt = new Date(d.created_at);
+            return getMonth(dt) + 1 === monthNum && getYear(dt) === currentYear;
+          }
+          return false;
+        });
+      });
+
+      if (activeOrgs.length === 0) {
+        const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+        return;
+      }
+
+      const indicators = [
+        "Total DRE",
+        "NOU",
+        "REÎNNOIT",
+        "MODIFICAT"
+      ];
+
+      const data = [];
+      
+      const headerRow = [];
+      activeOrgs.forEach((org, index) => {
+        headerRow.push(org);
+        if (index < activeOrgs.length - 1) headerRow.push("");
+      });
+      data.push(headerRow);
+
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeOrgs.forEach((org, orgIndex) => {
+          const orgDre = dre.filter((d) => {
+            if (d.organization_name !== org) return false;
+            if (d.created_at) {
+              const dt = new Date(d.created_at);
+              return getMonth(dt) + 1 === monthNum && getYear(dt) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = orgDre.length;
+          else if (indicatorIndex === 1) value = orgDre.filter(d => d.tip_declaratie === "noua").length;
+          else if (indicatorIndex === 2) value = orgDre.filter(d => d.tip_declaratie === "reinnoita").length;
+          else if (indicatorIndex === 3) value = orgDre.filter(d => d.tip_declaratie === "modificata").length;
+
+          row.push(`${indicator}: ${value}`);
+          if (orgIndex < activeOrgs.length - 1) row.push("");
+        });
+        data.push(row);
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+      activeOrgs.forEach((org, orgIndex) => {
+        const colIndex = orgIndex * 2;
+        for (let R = 0; R <= 4; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+          if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+          
+          worksheet[cellAddress].s = {
+            border: {
+              top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            },
+            font: R === 0 ? { bold: true } : undefined
+          };
+        }
+      });
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
+    });
+
+    // Create total year sheet
+    const activeOrgsYear = allOrgsFromDre.filter(org => {
+      return dre.some(d => {
+        if (d.organization_name !== org) return false;
+        if (d.created_at) {
+          const dt = new Date(d.created_at);
+          return getYear(dt) === currentYear;
+        }
+        return false;
+      });
+    });
+
+    if (activeOrgsYear.length > 0) {
+      const indicators = [
+        "Total DRE",
+        "NOU",
+        "REÎNNOIT",
+        "MODIFICAT"
+      ];
+
+      const yearData = [];
+      
+      const headerRow = [];
+      activeOrgsYear.forEach((org, index) => {
+        headerRow.push(org);
+        if (index < activeOrgsYear.length - 1) headerRow.push("");
+      });
+      yearData.push(headerRow);
+
+      indicators.forEach((indicator, indicatorIndex) => {
+        const row = [];
+        activeOrgsYear.forEach((org, orgIndex) => {
+          const orgDre = dre.filter((d) => {
+            if (d.organization_name !== org) return false;
+            if (d.created_at) {
+              const dt = new Date(d.created_at);
+              return getYear(dt) === currentYear;
+            }
+            return false;
+          });
+
+          let value = 0;
+          if (indicatorIndex === 0) value = orgDre.length;
+          else if (indicatorIndex === 1) value = orgDre.filter(d => d.tip_declaratie === "noua").length;
+          else if (indicatorIndex === 2) value = orgDre.filter(d => d.tip_declaratie === "reinnoita").length;
+          else if (indicatorIndex === 3) value = orgDre.filter(d => d.tip_declaratie === "modificata").length;
+
+          row.push(`${indicator}: ${value}`);
+          if (orgIndex < activeOrgsYear.length - 1) row.push("");
+        });
+        yearData.push(row);
+      });
+
+      const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
+
+      activeOrgsYear.forEach((org, orgIndex) => {
+        const colIndex = orgIndex * 2;
+        for (let R = 0; R <= 4; R++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
+          if (!yearWorksheet[cellAddress]) yearWorksheet[cellAddress] = { t: 's', v: '' };
+          
+          yearWorksheet[cellAddress].s = {
+            border: {
+              top: R === 0 ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              bottom: (R === 0 || R === 4) ? { style: 'thin', color: { rgb: "000000" } } : undefined,
+              left: { style: 'thin', color: { rgb: "000000" } },
+              right: { style: 'thin', color: { rgb: "000000" } }
+            },
+            font: R === 0 ? { bold: true } : undefined
+          };
+        }
+      });
+
+      XLSX.utils.book_append_sheet(workbook, yearWorksheet, `Total ${currentYear}`);
+    }
+
+    XLSX.writeFile(workbook, `raport-dre-${currentYear}.xlsx`);
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -1143,6 +1409,24 @@ export default function Dashboard({ user }) {
                 <div>
                   <h2 className="text-base font-bold text-gray-900">Statistici DRE per ISF / CISF / SCSC</h2>
                 </div>
+                {(user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGenerateDreReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Generează Raport Luna Curentă
+                    </button>
+                    <button
+                      onClick={handleGenerateDreYearReport}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Generează Raport Anul Curent
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
