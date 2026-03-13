@@ -141,9 +141,12 @@ export default function CreateDre({ user }) {
       await apiClient.createDre(formDataToSend);
       setSuccess(true);
       
-      // Redirect based on user role
+      // Redirect based on user role and force reload
       const redirectPath = user.role === 'admin' || isFlorin ? '/all-dre' : '/my-dre';
-      setTimeout(() => navigate(redirectPath), 2000);
+      setTimeout(() => {
+        navigate(redirectPath, { replace: true });
+        window.location.reload();
+      }, 2000);
     } catch (error) {
       // Handle error with existingId for duplicate detection
       if (error.existingId) {
