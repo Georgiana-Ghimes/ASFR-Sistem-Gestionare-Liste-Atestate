@@ -198,48 +198,65 @@ export default function CreateDre({ user }) {
           {/* Competențe */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Competențe
+              Domenii de competență examinator
             </label>
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                <input
-                  type="checkbox"
-                  checked={formData.material_rulant_teoretic}
-                  onChange={(e) => setFormData({ ...formData, material_rulant_teoretic: e.target.checked })}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Material rulant - Evaluare teoretică</span>
-              </label>
+            
+            {/* Cunoștințe profesionale de material rulant */}
+            <div className="mb-4 p-4 bg-blue-50/30 border border-blue-100 rounded-xl">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Cunoștințe profesionale de material rulant</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Evaluare teoretică</label>
+                  <select
+                    value={formData.material_rulant_teoretic ? "da" : "nu"}
+                    onChange={(e) => setFormData({ ...formData, material_rulant_teoretic: e.target.value === "da" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  >
+                    <option value="nu">Nu</option>
+                    <option value="da">Da</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Evaluare practică</label>
+                  <select
+                    value={formData.material_rulant_practic ? "da" : "nu"}
+                    onChange={(e) => setFormData({ ...formData, material_rulant_practic: e.target.value === "da" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  >
+                    <option value="nu">Nu</option>
+                    <option value="da">Da</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                <input
-                  type="checkbox"
-                  checked={formData.material_rulant_practic}
-                  onChange={(e) => setFormData({ ...formData, material_rulant_practic: e.target.checked })}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Material rulant - Evaluare practică</span>
-              </label>
-
-              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                <input
-                  type="checkbox"
-                  checked={formData.infrastructura_teoretic}
-                  onChange={(e) => setFormData({ ...formData, infrastructura_teoretic: e.target.checked })}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Infrastructură - Evaluare teoretică</span>
-              </label>
-
-              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                <input
-                  type="checkbox"
-                  checked={formData.infrastructura_practic}
-                  onChange={(e) => setFormData({ ...formData, infrastructura_practic: e.target.checked })}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Infrastructură - Evaluare practică</span>
-              </label>
+            {/* Cunoștințe profesionale de infrastructură */}
+            <div className="p-4 bg-green-50/30 border border-green-100 rounded-xl">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Cunoștințe profesionale de infrastructură</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Evaluare teoretică</label>
+                  <select
+                    value={formData.infrastructura_teoretic ? "da" : "nu"}
+                    onChange={(e) => setFormData({ ...formData, infrastructura_teoretic: e.target.value === "da" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  >
+                    <option value="nu">Nu</option>
+                    <option value="da">Da</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Evaluare practică</label>
+                  <select
+                    value={formData.infrastructura_practic ? "da" : "nu"}
+                    onChange={(e) => setFormData({ ...formData, infrastructura_practic: e.target.value === "da" })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  >
+                    <option value="nu">Nu</option>
+                    <option value="da">Da</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -247,7 +264,7 @@ export default function CreateDre({ user }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Data Emitere <span className="text-red-500">*</span>
+                Data emitere declarației <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -259,7 +276,7 @@ export default function CreateDre({ user }) {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Data Expirare <span className="text-red-500">*</span>
+                Valabilitate declarație <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"

@@ -208,7 +208,7 @@ export default function AllLists({ user }) {
         </div>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
         >
           <Download className="w-4 h-4" />
           Export CSV
