@@ -192,6 +192,28 @@ class ApiClient {
       body: JSON.stringify({ ids })
     });
   }
+
+  // DRE
+  async getAllDre() {
+    return this.request('/dre');
+  }
+
+  async getMyDre() {
+    return this.request('/dre/my');
+  }
+
+  async createDre(dreData) {
+    return this.request('/dre', {
+      method: 'POST',
+      body: JSON.stringify(dreData)
+    });
+  }
+
+  async deleteDre(id) {
+    return this.request(`/dre/${id}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
