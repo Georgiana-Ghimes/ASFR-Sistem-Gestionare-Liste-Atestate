@@ -322,17 +322,17 @@ export default function AllDre({ user }) {
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {dre.limba_evaluare}
                       </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center text-sm">
-                        {dre.material_rulant_teoretic ? '✓' : '-'}
+                      <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
+                        {dre.material_rulant_teoretic ? 'Da' : 'Nu'}
                       </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center text-sm">
-                        {dre.material_rulant_practic ? '✓' : '-'}
+                      <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
+                        {dre.material_rulant_practic ? 'Da' : 'Nu'}
                       </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center text-sm">
-                        {dre.infrastructura_teoretic ? '✓' : '-'}
+                      <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
+                        {dre.infrastructura_teoretic ? 'Da' : 'Nu'}
                       </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center text-sm">
-                        {dre.infrastructura_practic ? '✓' : '-'}
+                      <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
+                        {dre.infrastructura_practic ? 'Da' : 'Nu'}
                       </td>
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {formatDate(dre.data_emitere)}
