@@ -24,7 +24,7 @@ export default function AllDre({ user }) {
   const [filterTip, setFilterTip] = useState("");
   const [filterOrg, setFilterOrg] = useState("");
   const [sortCol, setSortCol] = useState("created_at");
-  const [sortDir, setSortDir] = useState("desc");
+  const [sortDir, setSortDir] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [downloading, setDownloading] = useState(null);
