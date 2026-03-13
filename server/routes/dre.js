@@ -187,7 +187,13 @@ router.get('/check-examinator/:nume/:organization', authenticateToken, async (re
     console.log('[DRE Check Backend] Checking:', { nume, organization });
     
     const result = await pool.query(
-      'SELECT data_expirare::date as data_expirare, tip_declaratie FROM DRE WHERE UPPER(nume_examinator) = UPPER($1) AND organization_name = $2 AND is_archived = false ORDER BY created_at DESC LIMIT 1',
+      `SELECT TO_CHAR(data_expirare, 'YYYY-MM-DD') as data_expirare, tip_declaratie 
+       FROM DRE 
+       WHERE UPPER(nume_examinator) = UPPER($1) 
+       AND organization_name = $2 
+       AND is_archived = false 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
       [nume, organization]
     );
     
