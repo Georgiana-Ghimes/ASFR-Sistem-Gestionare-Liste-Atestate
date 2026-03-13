@@ -94,6 +94,7 @@ export default function AllDre({ user }) {
       await apiClient.deleteDre(id);
       toast.success('DRE șters cu succes');
       loadDreList();
+      loadArchivedDreList();
     } catch (error) {
       toast.error(error.message || 'Eroare la ștergerea DRE');
     }
