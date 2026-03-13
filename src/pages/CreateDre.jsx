@@ -53,6 +53,25 @@ export default function CreateDre({ user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Auto-calculate data_expirare when data_emitere or tip_declaratie changes
+  useEffect(() => {
+    if (formData.data_emitere && formData.tip_declaratie === 'reinnoita') {
+      const emitereDate = new Date(formData.data_emitere);
+      // Add 5 years and 1 day
+      const expirareDate = new Date(emitereDate);
+      expirareDate.setFullYear(expirareDate.getFullYear() + 5);
+      expirareDate.setDate(expirareDate.getDate() + 1);
+      
+      // Format as YYYY-MM-DD for input[type="date"]
+      const formattedDate = expirareDate.toISOString().split('T')[0];
+      
+      setFormData(prev => ({
+        ...prev,
+        data_expirare: formattedDate
+      }));
+    }
+  }, [formData.data_emitere, formData.tip_declaratie]);
+
   const loadOrganizations = async () => {
     try {
       const users = await apiClient.getAllUsers();
