@@ -235,6 +235,10 @@ class ApiClient {
       method: 'PATCH'
     });
   }
+
+  async checkExaminatorDre(nume, organization) {
+    return this.request(`/dre/check-examinator/${encodeURIComponent(nume)}/${encodeURIComponent(organization)}`);
+  }
 }
 
 export const apiClient = new ApiClient();
