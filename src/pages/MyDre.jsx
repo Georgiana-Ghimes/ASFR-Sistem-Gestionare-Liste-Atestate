@@ -139,9 +139,10 @@ export default function MyDre({ user }) {
       let filename = `${nrDeclaratie.replace(/\//g, '_')}.zip`; // fallback
       
       if (contentDisposition) {
-        const matches = contentDisposition.match(/filename="?(.+?)"?$/);
-        if (matches && matches[1]) {
-          filename = matches[1];
+        // Extract filename - handle both quoted and unquoted
+        const parts = contentDisposition.split('filename=');
+        if (parts.length > 1) {
+          filename = parts[1].trim().replace(/^["']|["']$/g, '');
         }
       }
       
