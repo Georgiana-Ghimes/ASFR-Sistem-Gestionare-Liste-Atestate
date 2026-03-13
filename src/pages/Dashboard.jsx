@@ -15,10 +15,20 @@ export default function Dashboard({ user }) {
   );
   const [lists, setLists] = useState([]);
   const [atestate, setAtestate] = useState([]);
+  const [dre, setDre] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterMonth, setFilterMonth] = useState(String(new Date().getMonth() + 1).padStart(2, "0"));
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
-  const [filterISF, setFilterISF] = useState("");
+  
+  // Auto-filter by user's organization if not admin/florin
+  const getUserOrganization = () => {
+    if (user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') {
+      return "";
+    }
+    return user?.isf_name || user?.cisf_name || user?.scsc_name || "";
+  };
+  
+  const [filterISF, setFilterISF] = useState(getUserOrganization());
 
   useEffect(() => {
     const load = async () => {
@@ -35,6 +45,16 @@ export default function Dashboard({ user }) {
             console.error('Failed to load atestate:', err);
           }
         }
+        
+        // Load DRE if user has access
+        if (user?.has_dre_role || user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') {
+          try {
+            const dreData = await apiClient.getAllDre();
+            setDre(dreData);
+          } catch (err) {
+            console.error('Failed to load DRE:', err);
+          }
+        }
       } catch (error) {
         console.error('Failed to load lists:', error);
       } finally {
@@ -42,6 +62,9 @@ export default function Dashboard({ user }) {
       }
     };
     load();
+    
+    // Update filter when user changes
+    setFilterISF(getUserOrganization());
   }, [user]);
 
   // No restrictions - all authenticated users can see dashboard
@@ -49,9 +72,10 @@ export default function Dashboard({ user }) {
   // Get all ISFs from lists and all organizations from atestate
   const allISFs = [...new Set(lists.map((l) => l.isf_name).filter(Boolean))].sort();
   const allOrgsFromAtestate = [...new Set(atestate.map((a) => a.organization_name).filter(Boolean))].sort();
+  const allOrgsFromDre = [...new Set(dre.map((d) => d.organization_name).filter(Boolean))].sort();
   
   // Use appropriate list based on active tab
-  const allOrganizations = activeTab === "liste" ? allISFs : allOrgsFromAtestate;
+  const allOrganizations = activeTab === "liste" ? allISFs : activeTab === "atestate" ? allOrgsFromAtestate : allOrgsFromDre;
   
   const years = [...new Set(lists.map((l) => l.created_date ? String(new Date(l.created_date).getFullYear()) : null).filter(Boolean))].sort((a, b) => parseInt(b) - parseInt(a));
   if (!years.includes(filterYear)) years.unshift(filterYear);
@@ -120,8 +144,28 @@ export default function Dashboard({ user }) {
     trimisaLuna: filteredAtestateByPeriod.filter((a) => a.status === "TRIMISA").length,
   };
 
+  // Filter DRE
+  const filteredDreByStat = dre.filter((d) => {
+    if (filterISF && d.organization_name !== filterISF) return false;
+    // Filter by created_at for selected month/year
+    if (d.created_at) {
+      const dt = new Date(d.created_at);
+      if (getMonth(dt) + 1 !== nowMonth) return false;
+      if (getYear(dt) !== nowYear) return false;
+    } else return false;
+    return true;
+  });
+
+  // KPI for DRE
+  const dreKpi = {
+    total: filteredDreByStat.length,
+    nou: filteredDreByStat.filter((d) => d.tip_declaratie === "NOU").length,
+    reinnoit: filteredDreByStat.filter((d) => d.tip_declaratie === "REINNOIT").length,
+    modificat: filteredDreByStat.filter((d) => d.tip_declaratie === "MODIFICAT").length,
+  };
+
   // Use appropriate KPI based on active tab
-  const currentKpi = activeTab === "liste" ? kpi : activeTab === "atestate" ? atestateKpi : { total: 0, primita: 0, verificata: 0, trimisa: 0, trimisaLuna: 0 };
+  const currentKpi = activeTab === "liste" ? kpi : activeTab === "atestate" ? atestateKpi : dreKpi;
   const kpiLabel = activeTab === "liste" ? "Liste" : activeTab === "atestate" ? "Atestate" : "DRE";
 
   const isfStats = allISFs
@@ -184,6 +228,30 @@ export default function Dashboard({ user }) {
       };
     })
     .filter((stat) => stat.total > 0); // Only show organizations that have atestate in the selected period
+
+  // DRE Stats per organization
+  const dreStats = allOrgsFromDre
+    .filter((org) => !filterISF || org === filterISF)
+    .map((org) => {
+      // Filter DRE by organization and by selected month/year
+      const orgDreByPeriod = dre.filter((d) => {
+        if (d.organization_name !== org) return false;
+        if (d.created_at) {
+          const dt = new Date(d.created_at);
+          if (getMonth(dt) + 1 !== nowMonth) return false;
+          if (getYear(dt) !== nowYear) return false;
+        } else return false;
+        return true;
+      });
+      return {
+        organization_name: org,
+        total: orgDreByPeriod.length,
+        nou: orgDreByPeriod.filter((d) => d.tip_declaratie === "NOU").length,
+        reinnoit: orgDreByPeriod.filter((d) => d.tip_declaratie === "REINNOIT").length,
+        modificat: orgDreByPeriod.filter((d) => d.tip_declaratie === "MODIFICAT").length
+      };
+    })
+    .filter((stat) => stat.total > 0); // Only show organizations that have DRE in the selected period
 
   const handleGenerateListeReport = () => {
     const currentMonth = new Date().getMonth() + 1;
@@ -843,7 +911,8 @@ export default function Dashboard({ user }) {
             <select
               value={filterISF}
               onChange={(e) => setFilterISF(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={user?.role !== 'admin' && user?.email !== 'florin.hritcu@sigurantaferoviara.ro'}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Toate ISF-urile</option>
               {allOrganizations.map((org) => (
@@ -862,10 +931,21 @@ export default function Dashboard({ user }) {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatsCard title={`Total ${kpiLabel}`} value={currentKpi.total} icon={List} color="slate" />
-            <StatsCard title="PRIMITE" value={currentKpi.primita} icon={Clock} color="amber" />
-            <StatsCard title="VERIFICATE" value={currentKpi.verificata} icon={CheckCircle} color="blue" />
-            <StatsCard title={`Trimise ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`} value={currentKpi.trimisaLuna} icon={Calendar} color="violet" />
+            {activeTab === "dre" ? (
+              <>
+                <StatsCard title="Total DRE" value={currentKpi.total} icon={List} color="slate" />
+                <StatsCard title="NOU" value={currentKpi.nou} icon={Clock} color="green" />
+                <StatsCard title="REÎNNOIT" value={currentKpi.reinnoit} icon={CheckCircle} color="blue" />
+                <StatsCard title="MODIFICAT" value={currentKpi.modificat} icon={Send} color="purple" />
+              </>
+            ) : (
+              <>
+                <StatsCard title={`Total ${kpiLabel}`} value={currentKpi.total} icon={List} color="slate" />
+                <StatsCard title="PRIMITE" value={currentKpi.primita} icon={Clock} color="amber" />
+                <StatsCard title="VERIFICATE" value={currentKpi.verificata} icon={CheckCircle} color="blue" />
+                <StatsCard title={`Trimise ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`} value={currentKpi.trimisaLuna} icon={Calendar} color="violet" />
+              </>
+            )}
           </div>
 
           {/* Tabs */}
@@ -1061,31 +1141,52 @@ export default function Dashboard({ user }) {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-gray-900">Statistici DRE</h2>
+                  <h2 className="text-base font-bold text-gray-900">Statistici DRE per ISF / CISF / SCSC</h2>
                 </div>
-                {user?.role === 'admin' && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => alert('Funcționalitate în dezvoltare')}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-                    >
-                      <Calendar className="w-4 h-4" />
-                      Generează Raport Luna Curentă
-                    </button>
-                    <button
-                      onClick={() => alert('Funcționalitate în dezvoltare')}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Generează Raport Anul Curent
-                    </button>
-                  </div>
-                )}
               </div>
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Statistici DRE</h2>
-                <p className="text-gray-500 text-sm">Funcționalitatea de statistici DRE va fi adăugată în curând.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      {["ISF / CISF / SCSC", "Total DRE", "NOU", "REÎNNOIT", "MODIFICAT"].map((h) => (
+                        <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {dreStats.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
+                          Nu există date disponibile.
+                        </td>
+                      </tr>
+                    ) : (
+                      dreStats.map((row) => (
+                        <tr key={row.organization_name} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">{row.organization_name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                              {row.nou}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                              {row.reinnoit}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                              {row.modificat}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
