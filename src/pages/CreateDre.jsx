@@ -104,11 +104,15 @@ export default function CreateDre({ user }) {
           console.log('[DRE Check] API result:', result);
           
           if (result.exists && result.data_expirare) {
-            console.log('[DRE Check] Setting expiration date:', result.data_expirare);
+            // Convert ISO date to YYYY-MM-DD format for input[type="date"]
+            const expirationDate = new Date(result.data_expirare);
+            const formattedDate = expirationDate.toISOString().split('T')[0];
+            
+            console.log('[DRE Check] Setting expiration date:', formattedDate);
             // Pre-fill expiration date from existing DRE
             setFormData(prev => ({
               ...prev,
-              data_expirare: result.data_expirare
+              data_expirare: formattedDate
             }));
           } else {
             console.log('[DRE Check] No existing DRE found');
