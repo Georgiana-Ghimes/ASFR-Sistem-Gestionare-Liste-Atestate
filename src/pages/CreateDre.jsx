@@ -182,17 +182,18 @@ export default function CreateDre({ user }) {
             </div>
           </div>
 
-          <div>
+          <div className="w-64">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Limba de Evaluare <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               value={formData.limba_evaluare}
               onChange={(e) => setFormData({ ...formData, limba_evaluare: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-              placeholder="ex: Română"
-            />
+            >
+              <option value="">Selectează limba</option>
+              <option value="Română">Română</option>
+            </select>
           </div>
 
           {/* Competențe */}
