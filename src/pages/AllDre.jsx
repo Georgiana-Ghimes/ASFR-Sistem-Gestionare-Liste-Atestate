@@ -20,6 +20,7 @@ export default function AllDre({ user }) {
   const [dreList, setDreList] = useState([]);
   const [search, setSearch] = useState("");
   const [filterTip, setFilterTip] = useState("");
+  const [filterOrg, setFilterOrg] = useState("");
   const [sortCol, setSortCol] = useState("created_at");
   const [sortDir, setSortDir] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,6 +110,7 @@ export default function AllDre({ user }) {
       return false;
     }
     if (filterTip && dre.tip_declaratie !== filterTip) return false;
+    if (filterOrg && dre.organization_name !== filterOrg) return false;
     return true;
   });
 
@@ -231,6 +233,19 @@ export default function AllDre({ user }) {
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">ISF / CISF / SCSC</label>
+            <select
+              value={filterOrg}
+              onChange={(e) => setFilterOrg(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Toate ISF-urile</option>
+              {[...new Set(dreList.map(d => d.organization_name).filter(Boolean))].sort().map((org) => (
+                <option key={org} value={org}>{org}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Tip Declarație</label>

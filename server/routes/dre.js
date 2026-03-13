@@ -60,6 +60,7 @@ router.get('/', authenticateToken, async (req, res) => {
         data_emitere,
         data_expirare,
         all_files,
+        organization_name,
         created_by_email,
         created_at
       FROM DRE
@@ -90,6 +91,7 @@ router.get('/my', authenticateToken, async (req, res) => {
         data_emitere,
         data_expirare,
         all_files,
+        organization_name,
         created_by_email,
         created_at
       FROM DRE
@@ -117,7 +119,8 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
       material_rulant_teoretic,
       material_rulant_practic,
       infrastructura_teoretic,
-      infrastructura_practic
+      infrastructura_practic,
+      organization_name
     } = req.body;
     
     // Validate required fields
@@ -128,6 +131,7 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
     if (!limba_evaluare?.trim()) missingFields.push('limba_evaluare');
     if (!data_emitere?.trim()) missingFields.push('data_emitere');
     if (!data_expirare?.trim()) missingFields.push('data_expirare');
+    if (!organization_name?.trim()) missingFields.push('organization_name');
     
     if (missingFields.length > 0) {
       console.log('Validation failed - missing fields:', missingFields);
@@ -160,8 +164,8 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
       `INSERT INTO DRE 
         (nr_declaratie, nume_examinator, tip_declaratie, limba_evaluare, 
          data_emitere, data_expirare, material_rulant_teoretic, material_rulant_practic, 
-         infrastructura_teoretic, infrastructura_practic, all_files, created_by_email) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+         infrastructura_teoretic, infrastructura_practic, all_files, organization_name, created_by_email) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
        RETURNING id`,
       [
         nr_declaratie,
@@ -175,6 +179,7 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
         infrastructura_teoretic === 'true' || infrastructura_teoretic === true,
         infrastructura_practic === 'true' || infrastructura_practic === true,
         allFiles ? JSON.stringify(allFiles) : null,
+        organization_name,
         req.user.email
       ]
     );

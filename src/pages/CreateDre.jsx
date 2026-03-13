@@ -9,6 +9,8 @@ export default function CreateDre({ user }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -23,13 +25,52 @@ export default function CreateDre({ user }) {
     material_rulant_teoretic: false,
     material_rulant_practic: false,
     infrastructura_teoretic: false,
-    infrastructura_practic: false
+    infrastructura_practic: false,
+    organization_name: ""
   });
 
   const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
   const hasDreRole = user?.has_dre_role;
   const canAccess = user?.role === 'admin' || isFlorin || (isRegularUser && hasDreRole);
+
+  useEffect(() => {
+    loadOrganizations();
+  }, []);
+
+  const loadOrganizations = async () => {
+    try {
+      setLoadingOrgs(true);
+      const users = await apiClient.getAllUsers();
+      let orgs = users
+        .filter(u => u.isf_name || u.cisf_name || u.scsc_name)
+        .map(u => ({
+          type: u.role,
+          name: u.isf_name || u.cisf_name || u.scsc_name
+        }))
+        .filter((org, index, self) => 
+          index === self.findIndex(o => o.name === org.name)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
+      
+      setOrganizations(orgs);
+
+      // Pre-select organization for non-admin users
+      if (user.role !== 'admin' && !isFlorin) {
+        const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+        if (userOrgName) {
+          setFormData(prev => ({
+            ...prev,
+            organization_name: userOrgName
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load organizations:', err);
+    } finally {
+      setLoadingOrgs(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -64,6 +105,7 @@ export default function CreateDre({ user }) {
       setError("Toate părțile numărului declarației sunt obligatorii."); 
       return; 
     }
+    if (!formData.organization_name) { setError("ISF / CISF / SCSC este obligatoriu."); return; }
     if (!formData.nume_examinator.trim()) { setError("Numele examinatorului este obligatoriu."); return; }
     if (!formData.limba_evaluare || !formData.limba_evaluare.trim()) { setError("Limba de evaluare este obligatorie."); return; }
     if (!formData.data_emitere) { setError("Data emiterii este obligatorie."); return; }
@@ -79,6 +121,7 @@ export default function CreateDre({ user }) {
       
       // Add all form fields
       formDataToSend.append('nr_declaratie', nr_declaratie);
+      formDataToSend.append('organization_name', formData.organization_name);
       formDataToSend.append('nume_examinator', formData.nume_examinator);
       formDataToSend.append('tip_declaratie', formData.tip_declaratie);
       formDataToSend.append('limba_evaluare', formData.limba_evaluare);
@@ -154,6 +197,36 @@ export default function CreateDre({ user }) {
         )}
 
         <div className="grid grid-cols-1 gap-6">
+          {/* ISF/CISF/SCSC Section */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              ISF / CISF / SCSC <span className="text-red-500">*</span>
+            </label>
+            {loadingOrgs ? (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-gray-500">Se încarcă...</span>
+              </div>
+            ) : (user.role === 'admin' || isFlorin) ? (
+              <select
+                value={formData.organization_name}
+                onChange={(e) => setFormData({ ...formData, organization_name: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+              >
+                <option value="">Selectează ISF / CISF / SCSC</option>
+                {organizations.map((org) => (
+                  <option key={org.name} value={org.name}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 font-medium">
+                {formData.organization_name || 'Se încarcă...'}
+              </div>
+            )}
+          </div>
+
           {/* Examinator Section */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
