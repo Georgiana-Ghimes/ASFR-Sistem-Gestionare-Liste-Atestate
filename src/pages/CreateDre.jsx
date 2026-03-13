@@ -11,7 +11,9 @@ export default function CreateDre({ user }) {
   
   // Form state
   const [formData, setFormData] = useState({
-    nr_declaratie: "",
+    nr_declaratie_part1: "",
+    nr_declaratie_part2: "",
+    nr_declaratie_part3: "",
     nume_examinator: "",
     tip_declaratie: "noua",
     limba_evaluare: "",
@@ -32,7 +34,10 @@ export default function CreateDre({ user }) {
     e.preventDefault();
     setError(null);
     
-    if (!formData.nr_declaratie.trim()) { setError("Numărul declarației este obligatoriu."); return; }
+    if (!formData.nr_declaratie_part1.trim() || !formData.nr_declaratie_part2.trim() || !formData.nr_declaratie_part3.trim()) { 
+      setError("Toate părțile numărului declarației sunt obligatorii."); 
+      return; 
+    }
     if (!formData.nume_examinator.trim()) { setError("Numele examinatorului este obligatoriu."); return; }
     if (!formData.limba_evaluare.trim()) { setError("Limba de evaluare este obligatorie."); return; }
     if (!formData.data_emitere) { setError("Data emiterii este obligatorie."); return; }
@@ -41,7 +46,20 @@ export default function CreateDre({ user }) {
     setLoading(true);
     
     try {
-      await apiClient.createDre(formData);
+      // Combine the three parts into nr_declaratie
+      const nr_declaratie = `${formData.nr_declaratie_part1}/${formData.nr_declaratie_part2}/${formData.nr_declaratie_part3}`;
+      
+      const dataToSend = {
+        ...formData,
+        nr_declaratie
+      };
+      
+      // Remove the individual parts from the data sent to API
+      delete dataToSend.nr_declaratie_part1;
+      delete dataToSend.nr_declaratie_part2;
+      delete dataToSend.nr_declaratie_part3;
+      
+      await apiClient.createDre(dataToSend);
       setSuccess(true);
       
       // Redirect based on user role
@@ -116,18 +134,36 @@ export default function CreateDre({ user }) {
           </div>
 
           {/* DRE Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Nr. Declarație <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.nr_declaratie}
-                onChange={(e) => setFormData({ ...formData, nr_declaratie: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                placeholder="ex: DRE-2026-001"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={formData.nr_declaratie_part1}
+                  onChange={(e) => setFormData({ ...formData, nr_declaratie_part1: e.target.value.toUpperCase() })}
+                  className="w-20 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition uppercase"
+                  placeholder="RO 2026"
+                />
+                <span className="text-gray-400 font-bold">/</span>
+                <input
+                  type="text"
+                  value={formData.nr_declaratie_part2}
+                  onChange={(e) => setFormData({ ...formData, nr_declaratie_part2: e.target.value.toUpperCase() })}
+                  className="w-16 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition uppercase"
+                  placeholder="7GL"
+                />
+                <span className="text-gray-400 font-bold">/</span>
+                <input
+                  type="text"
+                  value={formData.nr_declaratie_part3}
+                  onChange={(e) => setFormData({ ...formData, nr_declaratie_part3: e.target.value })}
+                  className="w-16 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  placeholder="001"
+                />
+              </div>
             </div>
 
             <div>
@@ -140,7 +176,7 @@ export default function CreateDre({ user }) {
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               >
                 <option value="noua">Nouă</option>
-                <option value="reinnoita">Reînnoire</option>
+                <option value="reinnoita">Reînnoită</option>
                 <option value="modificata">Modificată</option>
               </select>
             </div>
