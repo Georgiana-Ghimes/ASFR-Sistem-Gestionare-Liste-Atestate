@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatsCard from "../components/StatsCard";
-import { List, Clock, CheckCircle, Send, Calendar, FileText } from "lucide-react";
+import { List, Clock, CheckCircle, Send, Calendar, FileText, LayoutDashboard } from "lucide-react";
 import { format, getMonth, getYear } from "date-fns";
 import * as XLSX from 'xlsx-js-style';
 
@@ -804,8 +804,11 @@ export default function Dashboard({ user }) {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Statistici</h1>
-        <p className="text-gray-500 mt-1 text-sm">Statistici generale privind listele de tipărire autorizații și atestatele.</p>
+        <div className="flex items-center gap-3 mb-2">
+          <LayoutDashboard className="w-8 h-8 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Statistici</h1>
+        </div>
+        <p className="text-gray-500 text-sm">Statistici generale privind listele de tipărire autorizații și atestatele.</p>
       </div>
 
       {/* Period filters */}

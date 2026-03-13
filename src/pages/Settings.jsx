@@ -278,8 +278,11 @@ export default function Settings({ user }) {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Setări & Administrare</h1>
-        <p className="text-gray-500 mt-1 text-sm">Gestionare utilizatori și configurare sistem</p>
+        <div className="flex items-center gap-3 mb-2">
+          <SettingsIcon className="w-8 h-8 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Setări & Administrare</h1>
+        </div>
+        <p className="text-gray-500 text-sm">Gestionare utilizatori și configurare sistem</p>
       </div>
 
       {notification && (

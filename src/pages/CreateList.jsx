@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight, List } from "lucide-react";
+import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight, FilePlus } from "lucide-react";
 
 export default function CreateList({ user }) {
   const navigate = useNavigate();
@@ -156,7 +156,7 @@ export default function CreateList({ user }) {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <List className="w-8 h-8 text-green-600" />
+          <FilePlus className="w-8 h-8 text-green-600" />
           <h1 className="text-2xl font-bold text-gray-900">Încărcare Liste</h1>
         </div>
         <p className="text-gray-500 mt-1 text-sm">Completați formularul pentru a adăuga o nouă listă de tipărire autorizații.</p>

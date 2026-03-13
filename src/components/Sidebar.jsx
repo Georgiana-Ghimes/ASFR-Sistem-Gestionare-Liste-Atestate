@@ -68,7 +68,7 @@ export default function Sidebar({ user }) {
     <aside className="w-64 min-h-screen bg-slate-800 flex flex-col shadow-2xl">
       <div className="px-6 py-8 border-b border-slate-700/60">
         <div className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-lg bg-white flex items-center justify-center p-2">
+          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center p-2">
             <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
           <div>
@@ -84,17 +84,34 @@ export default function Sidebar({ user }) {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
+          
+          // Determine color based on page category
+          let activeColor = "bg-blue-600"; // default
+          let iconColor = "text-blue-500"; // default icon color
+          let hoverColor = "hover:bg-slate-700";
+          
+          if (item.path.includes('list')) {
+            activeColor = "bg-green-600";
+            iconColor = "text-green-500";
+          } else if (item.path.includes('atestat')) {
+            activeColor = "bg-pink-600";
+            iconColor = "text-pink-500";
+          } else if (item.path.includes('dre')) {
+            activeColor = "bg-purple-600";
+            iconColor = "text-purple-500";
+          }
+          
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-300 hover:text-white hover:bg-slate-700"
+                  ? `${activeColor} text-white shadow-md`
+                  : `text-slate-300 hover:text-white ${hoverColor}`
               }`}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : iconColor}`} />
               {item.label}
             </Link>
           );
@@ -105,7 +122,7 @@ export default function Sidebar({ user }) {
         <a
           href="/Ghid-Utilizare-Sistem-Gestionare-Liste-Atestate-ASFR.pdf"
           download="Ghid-Utilizare-Sistem-Gestionare-Liste-Atestate-ASFR.pdf"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
         >
           <Download className="w-4 h-4" />
           Descarcă Documentație
@@ -123,10 +140,10 @@ export default function Sidebar({ user }) {
         </span>
       </div>
 
-      <div className="px-3 pb-6">
+      <div className="px-3 pb-6 flex justify-center">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150"
         >
           <LogOut className="w-4 h-4" />
           Deconectare

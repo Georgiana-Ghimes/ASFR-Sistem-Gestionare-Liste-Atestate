@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight, Award } from "lucide-react";
+import { Upload, Save, AlertCircle, CheckCircle, FileText, ArrowRight, FileBadge } from "lucide-react";
 
 export default function CreateAtestat({ user }) {
   const navigate = useNavigate();
@@ -197,7 +197,7 @@ export default function CreateAtestat({ user }) {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Award className="w-8 h-8 text-pink-600" />
+          <FileBadge className="w-8 h-8 text-pink-600" />
           <h1 className="text-2xl font-bold text-gray-900">Încărcare Atestate</h1>
         </div>
         <p className="text-gray-500 mt-1 text-sm">Completați formularul pentru a adăuga un nou atestat.</p>

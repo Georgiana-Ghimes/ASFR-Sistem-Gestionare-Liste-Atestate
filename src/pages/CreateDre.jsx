@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileStack, AlertCircle, CheckCircle, Save } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle, Save } from "lucide-react";
 import { apiClient } from "../api/client";
 import { useNavigate } from "react-router-dom";
 
@@ -104,7 +104,7 @@ export default function CreateDre({ user }) {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <FileStack className="w-8 h-8 text-purple-600" />
+          <FileText className="w-8 h-8 text-purple-600" />
           <h1 className="text-2xl font-bold text-gray-900">Încărcare DRE</h1>
         </div>
         <p className="text-gray-500 mt-1 text-sm">Completați formularul pentru a adăuga un nou DRE.</p>
