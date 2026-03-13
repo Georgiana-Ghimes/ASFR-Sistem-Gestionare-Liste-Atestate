@@ -245,7 +245,7 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// Download DRE files as ZIP
+// Download DRE files (single file or ZIP)
 router.get('/:id/download', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -259,12 +259,39 @@ router.get('/:id/download', authenticateToken, async (req, res) => {
     
     const dre = result.rows[0];
     
+    // Parse all_files if it's a string
+    let allFiles = dre.all_files;
+    if (typeof allFiles === 'string') {
+      try {
+        allFiles = JSON.parse(allFiles);
+      } catch (e) {
+        return res.status(500).json({ error: 'Eroare la procesarea fișierelor' });
+      }
+    }
+    
     // Check if there are files to download
-    if (!dre.all_files || !Array.isArray(dre.all_files) || dre.all_files.length === 0) {
+    if (!allFiles || !Array.isArray(allFiles) || allFiles.length === 0) {
       return res.status(404).json({ error: 'Nu există fișiere atașate' });
     }
     
-    // Use nr_declaratie as ZIP filename (sanitize for filesystem)
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    const fileCount = allFiles.length;
+    
+    // If only one file, download it directly
+    if (fileCount === 1) {
+      const fileInfo = allFiles[0];
+      const filename = path.basename(fileInfo.url);
+      const filePath = path.join(uploadsDir, filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Fișierul nu a fost găsit' });
+      }
+      
+      // Send the single file directly with original name
+      return res.download(filePath, fileInfo.filename);
+    }
+    
+    // Multiple files - create ZIP archive
     const sanitizedName = (dre.nr_declaratie || 'dre').replace(/[^a-zA-Z0-9_-]/g, '_');
     
     // Create ZIP archive
@@ -284,9 +311,7 @@ router.get('/:id/download', authenticateToken, async (req, res) => {
     });
     
     // Add files to archive
-    const uploadsDir = path.join(__dirname, '..', 'uploads');
-    
-    dre.all_files.forEach((fileInfo, index) => {
+    allFiles.forEach((fileInfo, index) => {
       const filename = path.basename(fileInfo.url);
       const filePath = path.join(uploadsDir, filename);
       

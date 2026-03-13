@@ -119,7 +119,8 @@ export default function MyDre({ user }) {
   const handleDownload = async (id, nrDeclaratie) => {
     try {
       setDownloading(id);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/dre/${id}/download`, {
+      // Add timestamp to prevent caching
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/dre/${id}/download?t=${Date.now()}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -133,11 +134,22 @@ export default function MyDre({ user }) {
         throw new Error('Download failed');
       }
       
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `${nrDeclaratie.replace(/\//g, '_')}.zip`; // fallback
+      
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename="?(.+?)"?$/);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${nrDeclaratie.replace(/\//g, '_')}.zip`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
