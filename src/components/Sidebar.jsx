@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge, Download } from "lucide-react";
+import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge, Download, FileStack } from "lucide-react";
 
 export default function Sidebar({ user }) {
   const location = useLocation();
@@ -9,7 +9,9 @@ export default function Sidebar({ user }) {
   
   const isAdmin = user?.role === 'admin';
   const hasAtestateRole = user?.has_atestate_role;
+  const hasDreRole = user?.has_dre_role;
   const isCecilia = user?.email === 'cecilia.mihaila@sigurantaferoviara.ro';
+  const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
 
   let navItems = [];
@@ -21,14 +23,23 @@ export default function Sidebar({ user }) {
       { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
       { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
     ];
+  } else if (isFlorin) {
+    // Florin vede Dashboard și meniurile de DRE
+    navItems = [
+      { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Administrare DRE", path: "/all-dre", icon: FileStack },
+      { label: "Încărcare DRE", path: "/create-dre", icon: FileText }
+    ];
   } else if (isAdmin) {
-    // Administratorii (în afară de Cecilia) văd TOT
+    // Administratorii (în afară de Cecilia și Florin) văd TOT
     navItems = [
       { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Administrare Liste", path: "/all-lists", icon: List },
       { label: "Încărcare Liste", path: "/create-list", icon: FilePlus },
       { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
       { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge },
+      { label: "Administrare DRE", path: "/all-dre", icon: FileStack },
+      { label: "Încărcare DRE", path: "/create-dre", icon: FileText },
       { label: "Setări", path: "/settings", icon: Settings }
     ];
   } else if (isRegularUser) {
@@ -41,6 +52,12 @@ export default function Sidebar({ user }) {
         ? [
             { label: "Atestatele mele", path: "/my-atestate", icon: Award },
             { label: "Încărcare Atestate", path: "/create-atestat", icon: FileBadge }
+          ]
+        : []),
+      ...(hasDreRole
+        ? [
+            { label: "DRE-urile mele", path: "/my-dre", icon: FileStack },
+            { label: "Încărcare DRE", path: "/create-dre", icon: FileText }
           ]
         : [])
     ];
@@ -55,7 +72,7 @@ export default function Sidebar({ user }) {
           </div>
           <div>
             <p className="text-slate-500 text-[10px] leading-tight">Sistem de gestionare</p>
-            <p className="text-white font-bold text-sm leading-tight">Liste/Atestate</p>
+            <p className="text-white font-bold text-sm leading-tight">Liste/Atestate/DRE</p>
             <p className="text-slate-400 text-xs">ASFR ©</p>
             <p className="text-slate-500 text-[10px] mt-0.5">v1.0.0</p>
           </div>

@@ -39,7 +39,7 @@ router.get('/isf-cisf-list', authenticateToken, async (req, res) => {
 router.get('/', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role, created_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -51,7 +51,7 @@ router.get('/', authenticateToken, requireRole('admin'), async (req, res) => {
 // Create user (admin only)
 router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
-    const { email, password, role, isf_name, cisf_name, scsc_name, has_atestate_role } = req.body;
+    const { email, password, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role } = req.body;
 
     if (!email || !password || !role) {
       return res.status(400).json({ error: 'Email, parolă și rol sunt obligatorii' });
@@ -82,7 +82,7 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO users (email, password, role, isf_name, cisf_name, scsc_name, has_atestate_role) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, created_at',
+      'INSERT INTO users (email, password, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role, created_at',
       [
         email, 
         hashedPassword, 
@@ -90,7 +90,8 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
         role === 'isf' ? isf_name : null,
         role === 'cisf' ? cisf_name : null,
         role === 'scsc' ? scsc_name : null,
-        has_atestate_role || false
+        has_atestate_role || false,
+        has_dre_role || false
       ]
     );
 
@@ -115,7 +116,7 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
 router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, role, isf_name, cisf_name, scsc_name, has_atestate_role, password } = req.body;
+    const { email, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role, password } = req.body;
 
     // Get the user to be updated
     const userToUpdate = await pool.query('SELECT email, role FROM users WHERE id = $1', [id]);
@@ -173,6 +174,11 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
       values.push(has_atestate_role);
     }
 
+    if (has_dre_role !== undefined) {
+      updates.push(`has_dre_role = $${paramCount++}`);
+      values.push(has_dre_role);
+    }
+
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updates.push(`password = $${paramCount++}`);
@@ -184,7 +190,7 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
     }
 
     values.push(id);
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, created_at`;
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING id, email, role, isf_name, cisf_name, scsc_name, has_atestate_role, has_dre_role, created_at`;
 
     const result = await pool.query(query, values);
 

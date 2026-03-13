@@ -10,6 +10,8 @@ import Settings from './pages/Settings';
 import MyAtestate from './pages/MyAtestate';
 import AllAtestate from './pages/AllAtestate';
 import CreateAtestat from './pages/CreateAtestat';
+import AllDre from './pages/AllDre';
+import CreateDre from './pages/CreateDre';
 import Sidebar from './components/Sidebar';
 
 const ProtectedRoute = ({ children }) => {
@@ -38,7 +40,13 @@ const AppLayout = () => {
       <Sidebar user={user} />
       <main className="flex-1 overflow-y-auto">
         <Routes>
-          <Route path="/" element={<Navigate to={user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' ? '/all-atestate' : '/dashboard'} replace />} />
+          <Route path="/" element={<Navigate to={
+            user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' 
+              ? '/all-atestate' 
+              : user?.email === 'florin.hritcu@sigurantaferoviara.ro'
+                ? '/all-dre'
+                : '/dashboard'
+          } replace />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/my-lists" element={<MyLists user={user} />} />
           <Route path="/all-lists" element={<AllLists user={user} />} />
@@ -47,6 +55,8 @@ const AppLayout = () => {
           <Route path="/my-atestate" element={<MyAtestate user={user} />} />
           <Route path="/all-atestate" element={<AllAtestate user={user} />} />
           <Route path="/create-atestat" element={<CreateAtestat user={user} />} />
+          <Route path="/all-dre" element={<AllDre user={user} />} />
+          <Route path="/create-dre" element={<CreateDre user={user} />} />
         </Routes>
       </main>
     </div>

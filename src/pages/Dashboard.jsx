@@ -7,7 +7,11 @@ import * as XLSX from 'xlsx-js-style';
 
 export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState(
-    user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' ? "atestate" : "liste"
+    user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' 
+      ? "atestate" 
+      : user?.email === 'florin.hritcu@sigurantaferoviara.ro'
+        ? "dre"
+        : "liste"
   );
   const [lists, setLists] = useState([]);
   const [atestate, setAtestate] = useState([]);
@@ -117,8 +121,8 @@ export default function Dashboard({ user }) {
   };
 
   // Use appropriate KPI based on active tab
-  const currentKpi = activeTab === "liste" ? kpi : atestateKpi;
-  const kpiLabel = activeTab === "liste" ? "Liste" : "Atestate";
+  const currentKpi = activeTab === "liste" ? kpi : activeTab === "atestate" ? atestateKpi : { total: 0, primita: 0, verificata: 0, trimisa: 0, trimisaLuna: 0 };
+  const kpiLabel = activeTab === "liste" ? "Liste" : activeTab === "atestate" ? "Atestate" : "DRE";
 
   const isfStats = allISFs
     .filter((isf) => !filterISF || isf === filterISF)
@@ -865,7 +869,7 @@ export default function Dashboard({ user }) {
           <div className="mb-6">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex space-x-8">
-                {user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && (
+                {user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && user?.email !== 'florin.hritcu@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("liste")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -877,7 +881,7 @@ export default function Dashboard({ user }) {
                     Statistici Liste
                   </button>
                 )}
-                {(user?.has_atestate_role || user?.role === 'admin') && user?.email !== 'daniel.bulearca@sigurantaferoviara.ro' && (
+                {(user?.has_atestate_role || user?.role === 'admin') && user?.email !== 'daniel.bulearca@sigurantaferoviara.ro' && user?.email !== 'florin.hritcu@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("atestate")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -887,6 +891,18 @@ export default function Dashboard({ user }) {
                     }`}
                   >
                     Statistici Atestate
+                  </button>
+                )}
+                {(user?.has_dre_role || user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') && user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && (
+                  <button
+                    onClick={() => setActiveTab("dre")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === "dre"
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Statistici DRE
                   </button>
                 )}
               </nav>
@@ -968,7 +984,7 @@ export default function Dashboard({ user }) {
                 </table>
               </div>
             </div>
-          ) : (
+          ) : activeTab === "atestate" ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
@@ -1036,6 +1052,37 @@ export default function Dashboard({ user }) {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Statistici DRE</h2>
+                </div>
+                {user?.role === 'admin' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => alert('Funcționalitate în dezvoltare')}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Generează Raport Luna Curentă
+                    </button>
+                    <button
+                      onClick={() => alert('Funcționalitate în dezvoltare')}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Generează Raport Anul Curent
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Statistici DRE</h2>
+                <p className="text-gray-500 text-sm">Funcționalitatea de statistici DRE va fi adăugată în curând.</p>
               </div>
             </div>
           )}

@@ -34,7 +34,7 @@ export default function Login() {
             <img src="/asfr-emboss.png" alt="ASFR" className="w-full h-full object-contain" />
           </div>
           <p className="text-sm font-bold text-gray-700 mb-1">Sistem de gestionare</p>
-          <h1 className="text-2xl font-bold text-gray-900">LISTE/ATESTATE</h1>
+          <h1 className="text-2xl font-bold text-gray-900">LISTE/ATESTATE/DRE</h1>
           <p className="text-gray-500 mt-2 text-sm">Autentificare în sistem</p>
         </div>
 

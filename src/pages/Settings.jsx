@@ -23,7 +23,8 @@ export default function Settings({ user }) {
     isf_name: '',
     cisf_name: '',
     scsc_name: '',
-    has_atestate_role: false
+    has_atestate_role: false,
+    has_dre_role: false
   });
 
   useEffect(() => {
@@ -189,7 +190,7 @@ export default function Settings({ user }) {
     try {
       await apiClient.createUser(newUser);
       showNotification('success', 'Utilizator adăugat cu succes!');
-      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '', scsc_name: '', has_atestate_role: false });
+      setNewUser({ email: '', password: '', role: 'isf', isf_name: '', cisf_name: '', scsc_name: '', has_atestate_role: false, has_dre_role: false });
       setShowAddForm(false);
       loadUsers();
     } catch (error) {
@@ -205,7 +206,8 @@ export default function Settings({ user }) {
         isf_name: editingUser.isf_name,
         cisf_name: editingUser.cisf_name,
         scsc_name: editingUser.scsc_name,
-        has_atestate_role: editingUser.has_atestate_role
+        has_atestate_role: editingUser.has_atestate_role,
+        has_dre_role: editingUser.has_dre_role
       };
       if (editingUser.password) {
         updateData.password = editingUser.password;
@@ -366,7 +368,7 @@ export default function Settings({ user }) {
                 />
               </div>
             )}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 flex gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -375,6 +377,15 @@ export default function Settings({ user }) {
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm font-semibold text-gray-700">Are și rol de Atestate</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newUser.has_dre_role}
+                  onChange={(e) => setNewUser({ ...newUser, has_dre_role: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-semibold text-gray-700">Are și rol de DRE</span>
               </label>
             </div>
             <div className="md:col-span-2 flex justify-end gap-3">
@@ -428,6 +439,7 @@ export default function Settings({ user }) {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Rol</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ISF / CISF / SCSC</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Atestate</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">DRE</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Parolă</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Creat La</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Acțiuni</th>
@@ -522,6 +534,24 @@ export default function Settings({ user }) {
                       <td className="px-6 py-4">
                         {isEditing ? (
                           <input
+                            type="checkbox"
+                            checked={editingUser.has_dre_role || false}
+                            onChange={(e) => setEditingUser({ ...editingUser, has_dre_role: e.target.checked })}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        ) : (
+                          <span className="text-sm">
+                            {u.has_dre_role ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">Da</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {isEditing ? (
+                          <input
                             type="password"
                             value={editingUser.password || ''}
                             onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
@@ -558,7 +588,7 @@ export default function Settings({ user }) {
                             {/* Only georgiana.ghimes can edit admins, everyone can edit non-admins */}
                             {(user.email === 'georgiana.ghimes@sigurantaferoviara.ro' || u.role !== 'admin') && (
                               <button
-                                onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false })}
+                                onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false, has_dre_role: u.has_dre_role || false })}
                                 className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
                                 title="Editează"
                               >
