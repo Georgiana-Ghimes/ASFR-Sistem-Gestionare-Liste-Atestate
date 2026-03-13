@@ -27,6 +27,7 @@ export default function MyDre({ user }) {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [downloading, setDownloading] = useState(null);
   const [highlightId, setHighlightId] = useState(null);
+  const [activeTab, setActiveTab] = useState('actuale');
 
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
   const hasDreRole = user?.has_dre_role;
@@ -84,6 +85,11 @@ export default function MyDre({ user }) {
     if (filterTip && dre.tip_declaratie !== filterTip) return false;
     return true;
   });
+
+  // Filter by tab - DRE-uri vechi tab shows nothing for now
+  if (activeTab === 'vechi') {
+    filtered = [];
+  }
 
   // Sorting
   if (sortCol) {
@@ -218,6 +224,34 @@ export default function MyDre({ user }) {
           <Download className="w-4 h-4" />
           Export CSV
         </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('actuale')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'actuale'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              DRE-uri actuale
+            </button>
+            <button
+              onClick={() => setActiveTab('vechi')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'vechi'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              DRE-uri vechi
+            </button>
+          </nav>
+        </div>
       </div>
 
       {/* Filters */}
