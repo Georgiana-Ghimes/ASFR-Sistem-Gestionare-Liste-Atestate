@@ -16,7 +16,6 @@ export default function Dashboard({ user }) {
   const [lists, setLists] = useState([]);
   const [atestate, setAtestate] = useState([]);
   const [dre, setDre] = useState([]);
-  const [archivedDre, setArchivedDre] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterMonth, setFilterMonth] = useState(String(new Date().getMonth() + 1).padStart(2, "0"));
   const [filterYear, setFilterYear] = useState(String(new Date().getFullYear()));
@@ -52,9 +51,6 @@ export default function Dashboard({ user }) {
           try {
             const dreData = await apiClient.getAllDre();
             setDre(dreData);
-            
-            const archivedDreData = await apiClient.getArchivedDre();
-            setArchivedDre(archivedDreData);
           } catch (err) {
             console.error('Failed to load DRE:', err);
           }
@@ -248,27 +244,15 @@ export default function Dashboard({ user }) {
         return true;
       });
       
-      // Filter archived DRE by organization and by selected month/year (using archived_at)
-      const orgArchivedDreByPeriod = archivedDre.filter((d) => {
-        if (d.organization_name !== org) return false;
-        if (d.archived_at) {
-          const dt = new Date(d.archived_at);
-          if (getMonth(dt) + 1 !== nowMonth) return false;
-          if (getYear(dt) !== nowYear) return false;
-        } else return false;
-        return true;
-      });
-      
       return {
         organization_name: org,
         total: orgDreByPeriod.length,
         nou: orgDreByPeriod.filter((d) => d.tip_declaratie === "noua").length,
         reinnoit: orgDreByPeriod.filter((d) => d.tip_declaratie === "reinnoita").length,
-        modificat: orgDreByPeriod.filter((d) => d.tip_declaratie === "modificata").length,
-        arhivate: orgArchivedDreByPeriod.length
+        modificat: orgDreByPeriod.filter((d) => d.tip_declaratie === "modificata").length
       };
     })
-    .filter((stat) => stat.total > 0 || stat.arhivate > 0); // Show organizations that have DRE (active or archived) in the selected period
+    .filter((stat) => stat.total > 0); // Only show organizations that have DRE in the selected period
 
   const handleGenerateListeReport = () => {
     const currentMonth = new Date().getMonth() + 1;
@@ -1449,7 +1433,7 @@ export default function Dashboard({ user }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ISF / CISF / SCSC", "NOU", "REÎNNOIT", "MODIFICAT", "ARHIVATE", `Total DRE ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`].map((h) => (
+                      {["ISF / CISF / SCSC", "NOU", "REÎNNOIT", "MODIFICAT", `Total DRE ${months.find(m => m.v === filterMonth)?.l} ${filterYear}`].map((h) => (
                         <th key={h} className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           {h}
                         </th>
@@ -1459,7 +1443,7 @@ export default function Dashboard({ user }) {
                   <tbody className="divide-y divide-gray-50">
                     {dreStats.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
                           Nu există date disponibile.
                         </td>
                       </tr>
@@ -1480,11 +1464,6 @@ export default function Dashboard({ user }) {
                           <td className="px-6 py-4 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
                               {row.modificat}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-                              {row.arhivate}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 text-center">{row.total}</td>
