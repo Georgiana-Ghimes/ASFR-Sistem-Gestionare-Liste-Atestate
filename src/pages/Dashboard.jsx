@@ -159,9 +159,9 @@ export default function Dashboard({ user }) {
   // KPI for DRE
   const dreKpi = {
     total: filteredDreByStat.length,
-    nou: filteredDreByStat.filter((d) => d.tip_declaratie === "NOU").length,
-    reinnoit: filteredDreByStat.filter((d) => d.tip_declaratie === "REINNOIT").length,
-    modificat: filteredDreByStat.filter((d) => d.tip_declaratie === "MODIFICAT").length,
+    nou: filteredDreByStat.filter((d) => d.tip_declaratie === "noua").length,
+    reinnoit: filteredDreByStat.filter((d) => d.tip_declaratie === "reinnoita").length,
+    modificat: filteredDreByStat.filter((d) => d.tip_declaratie === "modificata").length,
   };
 
   // Use appropriate KPI based on active tab
@@ -246,9 +246,9 @@ export default function Dashboard({ user }) {
       return {
         organization_name: org,
         total: orgDreByPeriod.length,
-        nou: orgDreByPeriod.filter((d) => d.tip_declaratie === "NOU").length,
-        reinnoit: orgDreByPeriod.filter((d) => d.tip_declaratie === "REINNOIT").length,
-        modificat: orgDreByPeriod.filter((d) => d.tip_declaratie === "MODIFICAT").length
+        nou: orgDreByPeriod.filter((d) => d.tip_declaratie === "noua").length,
+        reinnoit: orgDreByPeriod.filter((d) => d.tip_declaratie === "reinnoita").length,
+        modificat: orgDreByPeriod.filter((d) => d.tip_declaratie === "modificata").length
       };
     })
     .filter((stat) => stat.total > 0); // Only show organizations that have DRE in the selected period
