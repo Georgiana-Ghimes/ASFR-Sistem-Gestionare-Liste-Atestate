@@ -19,6 +19,7 @@ export default function MyDre({ user }) {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [dreList, setDreList] = useState([]);
+  const [archivedDreList, setArchivedDreList] = useState([]);
   const [search, setSearch] = useState("");
   const [filterTip, setFilterTip] = useState("");
   const [sortCol, setSortCol] = useState("created_at");
@@ -35,6 +36,7 @@ export default function MyDre({ user }) {
   useEffect(() => {
     if (isRegularUser && hasDreRole) {
       loadDreList();
+      loadArchivedDreList();
     }
   }, [isRegularUser, hasDreRole]);
 
@@ -71,13 +73,24 @@ export default function MyDre({ user }) {
     }
   };
 
+  const loadArchivedDreList = async () => {
+    try {
+      const data = await apiClient.getMyArchivedDre();
+      setArchivedDreList(data);
+    } catch (error) {
+      console.error('Load my archived DRE error:', error);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     return format(new Date(dateString), 'dd.MM.yyyy');
   };
 
   // Filtering
-  let filtered = dreList.filter((dre) => {
+  const currentList = activeTab === 'actuale' ? dreList : archivedDreList;
+  
+  let filtered = currentList.filter((dre) => {
     if (search && !dre.nr_declaratie.toLowerCase().includes(search.toLowerCase()) &&
         !dre.nume_examinator.toLowerCase().includes(search.toLowerCase())) {
       return false;
@@ -85,11 +98,6 @@ export default function MyDre({ user }) {
     if (filterTip && dre.tip_declaratie !== filterTip) return false;
     return true;
   });
-
-  // Filter by tab - DRE-uri vechi tab shows nothing for now
-  if (activeTab === 'vechi') {
-    filtered = [];
-  }
 
   // Sorting
   if (sortCol) {

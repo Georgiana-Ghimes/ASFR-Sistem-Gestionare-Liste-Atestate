@@ -20,6 +20,7 @@ export default function AllDre({ user }) {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [dreList, setDreList] = useState([]);
+  const [archivedDreList, setArchivedDreList] = useState([]);
   const [search, setSearch] = useState("");
   const [filterTip, setFilterTip] = useState("");
   const [filterOrg, setFilterOrg] = useState("");
@@ -38,6 +39,7 @@ export default function AllDre({ user }) {
   useEffect(() => {
     if (canAccess) {
       loadDreList();
+      loadArchivedDreList();
     }
   }, [canAccess]);
 
@@ -71,6 +73,15 @@ export default function AllDre({ user }) {
       toast.error('Eroare la încărcarea DRE-urilor');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadArchivedDreList = async () => {
+    try {
+      const data = await apiClient.getArchivedDre();
+      setArchivedDreList(data);
+    } catch (error) {
+      console.error('Load archived DRE error:', error);
     }
   };
 
@@ -128,7 +139,9 @@ export default function AllDre({ user }) {
   };
 
   // Filtering
-  let filtered = dreList.filter((dre) => {
+  const currentList = activeTab === 'actuale' ? dreList : archivedDreList;
+  
+  let filtered = currentList.filter((dre) => {
     if (search && !dre.nr_declaratie.toLowerCase().includes(search.toLowerCase()) &&
         !dre.nume_examinator.toLowerCase().includes(search.toLowerCase())) {
       return false;
@@ -137,11 +150,6 @@ export default function AllDre({ user }) {
     if (filterOrg && dre.organization_name !== filterOrg) return false;
     return true;
   });
-
-  // Filter by tab - DRE-uri vechi tab shows nothing for now
-  if (activeTab === 'vechi') {
-    filtered = [];
-  }
 
   // Sorting
   if (sortCol) {

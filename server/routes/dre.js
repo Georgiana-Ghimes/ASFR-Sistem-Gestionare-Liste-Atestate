@@ -62,9 +62,12 @@ router.get('/', authenticateToken, async (req, res) => {
         all_files,
         organization_name,
         created_by_email,
-        created_at
+        created_at,
+        is_archived,
+        archived_at
       FROM DRE
-      ORDER BY created_at DESC
+      WHERE is_archived = false
+      ORDER BY created_at ASC
     `);
     
     res.json(result.rows);
@@ -93,15 +96,85 @@ router.get('/my', authenticateToken, async (req, res) => {
         all_files,
         organization_name,
         created_by_email,
-        created_at
+        created_at,
+        is_archived,
+        archived_at
       FROM DRE
-      WHERE created_by_email = $1
-      ORDER BY created_at DESC
+      WHERE created_by_email = $1 AND is_archived = false
+      ORDER BY created_at ASC
     `, [req.user.email]);
     
     res.json(result.rows);
   } catch (error) {
     console.error('Get my DRE error:', error);
+    res.status(500).json({ error: 'Eroare internă de server' });
+  }
+});
+
+// Get archived DRE declarations
+router.get('/archived', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id,
+        nr_declaratie,
+        nume_examinator,
+        tip_declaratie,
+        limba_evaluare,
+        material_rulant_teoretic,
+        material_rulant_practic,
+        infrastructura_teoretic,
+        infrastructura_practic,
+        data_emitere,
+        data_expirare,
+        all_files,
+        organization_name,
+        created_by_email,
+        created_at,
+        is_archived,
+        archived_at
+      FROM DRE
+      WHERE is_archived = true
+      ORDER BY archived_at DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get archived DRE error:', error);
+    res.status(500).json({ error: 'Eroare internă de server' });
+  }
+});
+
+// Get my archived DRE declarations
+router.get('/my-archived', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id,
+        nr_declaratie,
+        nume_examinator,
+        tip_declaratie,
+        limba_evaluare,
+        material_rulant_teoretic,
+        material_rulant_practic,
+        infrastructura_teoretic,
+        infrastructura_practic,
+        data_emitere,
+        data_expirare,
+        all_files,
+        organization_name,
+        created_by_email,
+        created_at,
+        is_archived,
+        archived_at
+      FROM DRE
+      WHERE created_by_email = $1 AND is_archived = true
+      ORDER BY archived_at DESC
+    `, [req.user.email]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get my archived DRE error:', error);
     res.status(500).json({ error: 'Eroare internă de server' });
   }
 });
@@ -142,7 +215,7 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
     
     // Check if declaration number already exists
     const existingDre = await pool.query(
-      'SELECT id, nr_declaratie, organization_name, created_by_email, created_at FROM DRE WHERE nr_declaratie = $1',
+      'SELECT id, nr_declaratie, organization_name, created_by_email, created_at FROM DRE WHERE nr_declaratie = $1 AND is_archived = false',
       [nr_declaratie]
     );
     
@@ -158,6 +231,36 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
         error: `DRE cu nr. ${existingDre.rows[0].nr_declaratie} a fost deja încărcat în data de ${existingDate} de ${existingDre.rows[0].organization_name}`,
         existingId: canViewLink ? existingDre.rows[0].id : null
       });
+    }
+    
+    // If tip_declaratie is "modificata", archive previous DRE for the same examinator
+    if (tip_declaratie === 'modificata') {
+      const previousDre = await pool.query(
+        'SELECT id, nr_declaratie FROM DRE WHERE UPPER(nume_examinator) = UPPER($1) AND is_archived = false AND organization_name = $2',
+        [nume_examinator, organization_name]
+      );
+      
+      if (previousDre.rows.length > 0) {
+        // Archive all previous DRE for this examinator
+        for (const oldDre of previousDre.rows) {
+          await pool.query(
+            'UPDATE DRE SET is_archived = true, archived_at = NOW() WHERE id = $1',
+            [oldDre.id]
+          );
+          
+          // Audit log for archiving
+          await logAudit(
+            req.user.email,
+            'ARCHIVE_DRE',
+            'DRE',
+            oldDre.id,
+            { nr_declaratie: oldDre.nr_declaratie, reason: 'Auto-arhivat la adăugarea DRE modificat' },
+            req.ip
+          );
+        }
+        
+        console.log(`[DRE] Archived ${previousDre.rows.length} previous DRE(s) for examinator: ${nume_examinator}`);
+      }
     }
     
     // Store all file paths as JSON (if files were uploaded)
@@ -245,67 +348,67 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// TODO: Future endpoint - Move DRE to archive (vechi)
-// router.patch('/:id/archive', authenticateToken, requireRole('admin'), async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     
-//     const result = await pool.query(
-//       'UPDATE DRE SET is_archived = true, archived_at = NOW() WHERE id = $1 RETURNING nr_declaratie',
-//       [id]
-//     );
-//     
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ error: 'DRE negăsit' });
-//     }
-//     
-//     // Audit log
-//     await logAudit(
-//       req.user.email,
-//       'ARCHIVE_DRE',
-//       'DRE',
-//       id,
-//       { nr_declaratie: result.rows[0].nr_declaratie },
-//       req.ip
-//     );
-//     
-//     res.json({ message: 'DRE arhivat cu succes' });
-//   } catch (error) {
-//     console.error('Archive DRE error:', error);
-//     res.status(500).json({ error: 'Eroare internă de server' });
-//   }
-// });
+// Archive DRE (move to vechi)
+router.patch('/:id/archive', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      'UPDATE DRE SET is_archived = true, archived_at = NOW() WHERE id = $1 RETURNING nr_declaratie',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'DRE negăsit' });
+    }
+    
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'ARCHIVE_DRE',
+      'DRE',
+      id,
+      { nr_declaratie: result.rows[0].nr_declaratie },
+      req.ip
+    );
+    
+    res.json({ message: 'DRE arhivat cu succes' });
+  } catch (error) {
+    console.error('Archive DRE error:', error);
+    res.status(500).json({ error: 'Eroare internă de server' });
+  }
+});
 
-// TODO: Future endpoint - Restore DRE from archive
-// router.patch('/:id/restore', authenticateToken, requireRole('admin'), async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     
-//     const result = await pool.query(
-//       'UPDATE DRE SET is_archived = false, archived_at = NULL WHERE id = $1 RETURNING nr_declaratie',
-//       [id]
-//     );
-//     
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ error: 'DRE negăsit' });
-//     }
-//     
-//     // Audit log
-//     await logAudit(
-//       req.user.email,
-//       'RESTORE_DRE',
-//       'DRE',
-//       id,
-//       { nr_declaratie: result.rows[0].nr_declaratie },
-//       req.ip
-//     );
-//     
-//     res.json({ message: 'DRE restaurat cu succes' });
-//   } catch (error) {
-//     console.error('Restore DRE error:', error);
-//     res.status(500).json({ error: 'Eroare internă de server' });
-//   }
-// });
+// Restore DRE from archive
+router.patch('/:id/restore', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      'UPDATE DRE SET is_archived = false, archived_at = NULL WHERE id = $1 RETURNING nr_declaratie',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'DRE negăsit' });
+    }
+    
+    // Audit log
+    await logAudit(
+      req.user.email,
+      'RESTORE_DRE',
+      'DRE',
+      id,
+      { nr_declaratie: result.rows[0].nr_declaratie },
+      req.ip
+    );
+    
+    res.json({ message: 'DRE restaurat cu succes' });
+  } catch (error) {
+    console.error('Restore DRE error:', error);
+    res.status(500).json({ error: 'Eroare internă de server' });
+  }
+});
 
 // Download DRE files as ZIP
 router.get('/:id/download', authenticateToken, async (req, res) => {

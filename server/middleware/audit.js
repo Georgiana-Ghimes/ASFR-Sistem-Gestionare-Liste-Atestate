@@ -6,11 +6,15 @@ export async function logAudit(userEmail, actionType, entityType, entityId = nul
     // If details is already a string, parse it first to ensure it's valid JSON
     const detailsValue = typeof details === 'string' ? details : JSON.stringify(details);
     
+    console.log('[AUDIT] Logging:', { userEmail, actionType, entityType, entityId, details, detailsValue });
+    
     await pool.query(
       `INSERT INTO audit_log (user_email, action_type, entity_type, entity_id, details, ip_address) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [userEmail, actionType, entityType, entityId, detailsValue, ipAddress]
     );
+    
+    console.log('[AUDIT] Successfully logged');
   } catch (error) {
     console.error('Audit log error:', error);
     // Don't throw - audit failures shouldn't break the main operation

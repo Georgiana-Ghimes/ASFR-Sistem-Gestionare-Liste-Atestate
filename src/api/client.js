@@ -202,6 +202,14 @@ class ApiClient {
     return this.request('/dre/my');
   }
 
+  async getArchivedDre() {
+    return this.request('/dre/archived');
+  }
+
+  async getMyArchivedDre() {
+    return this.request('/dre/my-archived');
+  }
+
   async createDre(formData) {
     return this.request('/dre', {
       method: 'POST',
@@ -213,6 +221,18 @@ class ApiClient {
   async deleteDre(id) {
     return this.request(`/dre/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  async archiveDre(id) {
+    return this.request(`/dre/${id}/archive`, {
+      method: 'PATCH'
+    });
+  }
+
+  async restoreDre(id) {
+    return this.request(`/dre/${id}/restore`, {
+      method: 'PATCH'
     });
   }
 }
