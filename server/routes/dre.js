@@ -142,12 +142,22 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
     
     // Check if declaration number already exists
     const existingDre = await pool.query(
-      'SELECT id FROM DRE WHERE nr_declaratie = $1',
+      'SELECT id, nr_declaratie, organization_name, created_by_email, created_at FROM DRE WHERE nr_declaratie = $1',
       [nr_declaratie]
     );
     
     if (existingDre.rows.length > 0) {
-      return res.status(400).json({ error: 'Numărul de declarație există deja' });
+      const existingDate = new Date(existingDre.rows[0].created_at).toLocaleDateString('ro-RO');
+      const userOrg = req.user.isf_name || req.user.cisf_name || req.user.scsc_name;
+      const canViewLink = existingDre.rows[0].created_by_email === req.user.email || 
+                          req.user.role === 'admin' || 
+                          req.user.email === 'florin.hritcu@sigurantaferoviara.ro' ||
+                          existingDre.rows[0].organization_name === userOrg;
+      
+      return res.status(400).json({ 
+        error: `DRE cu nr. ${existingDre.rows[0].nr_declaratie} a fost deja încărcat în data de ${existingDate} de ${existingDre.rows[0].organization_name}`,
+        existingId: canViewLink ? existingDre.rows[0].id : null
+      });
     }
     
     // Store all file paths as JSON (if files were uploaded)

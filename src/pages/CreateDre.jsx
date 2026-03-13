@@ -145,7 +145,12 @@ export default function CreateDre({ user }) {
       const redirectPath = user.role === 'admin' || isFlorin ? '/all-dre' : '/my-dre';
       setTimeout(() => navigate(redirectPath), 2000);
     } catch (error) {
-      setError(error.message || 'Eroare la crearea DRE');
+      // Handle error with existingId for duplicate detection
+      if (error.existingId) {
+        setError({ message: error.message, existingId: error.existingId });
+      } else {
+        setError(error.message || 'Eroare la crearea DRE');
+      }
     } finally {
       setLoading(false);
     }
@@ -191,9 +196,25 @@ export default function CreateDre({ user }) {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-red-700 text-sm">
+                {typeof error === 'object' ? error.message : error}
+              </p>
+            </div>
+            {typeof error === 'object' && error.existingId && (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetPage = user?.role === 'admin' || isFlorin ? '/all-dre' : '/my-dre';
+                  navigate(targetPage, { state: { highlightId: error.existingId } });
+                }}
+                className="mt-2 inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-semibold underline"
+              >
+                Vezi DRE existent →
+              </button>
+            )}
           </div>
         )}
 

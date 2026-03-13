@@ -3,6 +3,7 @@ import { FileStack, AlertCircle, Search, Filter, Download, ChevronUp, ChevronDow
 import { apiClient } from "../api/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 const COLUMNS = [
   { label: "Nr. crt.", col: null },
@@ -15,6 +16,7 @@ const COLUMNS = [
 ];
 
 export default function MyDre({ user }) {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [dreList, setDreList] = useState([]);
   const [search, setSearch] = useState("");
@@ -24,6 +26,7 @@ export default function MyDre({ user }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [downloading, setDownloading] = useState(null);
+  const [highlightId, setHighlightId] = useState(null);
 
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
   const hasDreRole = user?.has_dre_role;
@@ -33,6 +36,26 @@ export default function MyDre({ user }) {
       loadDreList();
     }
   }, [isRegularUser, hasDreRole]);
+
+  useEffect(() => {
+    // Handle highlight from navigation state
+    if (location.state?.highlightId) {
+      setHighlightId(location.state.highlightId);
+      
+      // Scroll to the row after a short delay
+      setTimeout(() => {
+        const row = document.getElementById(`dre-row-${location.state.highlightId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+      
+      // Clear highlight after animation
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 3000);
+    }
+  }, [location.state]);
 
   const loadDreList = async () => {
     try {
@@ -322,7 +345,13 @@ export default function MyDre({ user }) {
                   </tr>
                 ) : (
                   paginatedData.map((dre, index) => (
-                    <tr key={dre.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={dre.id} 
+                      id={`dre-row-${dre.id}`}
+                      className={`hover:bg-gray-50 transition-colors ${
+                        highlightId === dre.id ? 'animate-pulse-green' : ''
+                      }`}
+                    >
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {startIdx + index + 1}
                       </td>
