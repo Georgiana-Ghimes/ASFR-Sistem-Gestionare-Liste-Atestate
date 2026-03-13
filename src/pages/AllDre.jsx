@@ -85,7 +85,7 @@ export default function AllDre({ user }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `dre_${nrDeclaratie.replace(/\//g, '_')}.zip`;
+      a.download = `${nrDeclaratie.replace(/\//g, '_')}.zip`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
