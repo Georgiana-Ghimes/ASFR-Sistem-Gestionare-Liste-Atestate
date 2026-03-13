@@ -125,9 +125,13 @@ router.patch('/:id', authenticateToken, requireRole('admin'), async (req, res) =
       return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
-    // Only georgiana.ghimes can edit admin users
-    if (userToUpdate.rows[0].role === 'admin' && req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
-      return res.status(403).json({ error: 'Doar administratorul suprem poate edita utilizatori admin' });
+    // Only super admins can edit admin users
+    const isSuperAdmin = req.user.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                         req.user.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                         req.user.email === 'georgiana.ghimes@sigurantaferoviara.ro';
+    
+    if (userToUpdate.rows[0].role === 'admin' && !isSuperAdmin) {
+      return res.status(403).json({ error: 'Doar administratorii supremi pot edita utilizatori admin' });
     }
 
     if (role && !['admin', 'isf', 'cisf', 'scsc'].includes(role)) {
@@ -232,9 +236,13 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
       return res.status(404).json({ error: 'Utilizator negăsit' });
     }
 
-    // Only georgiana.ghimes can delete admin users
-    if (userToDelete.rows[0].role === 'admin' && req.user.email !== 'georgiana.ghimes@sigurantaferoviara.ro') {
-      return res.status(403).json({ error: 'Doar administratorul suprem poate șterge utilizatori admin' });
+    // Only super admins can delete admin users
+    const isSuperAdmin = req.user.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                         req.user.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                         req.user.email === 'georgiana.ghimes@sigurantaferoviara.ro';
+    
+    if (userToDelete.rows[0].role === 'admin' && !isSuperAdmin) {
+      return res.status(403).json({ error: 'Doar administratorii supremi pot șterge utilizatori admin' });
     }
 
     const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id, email', [id]);

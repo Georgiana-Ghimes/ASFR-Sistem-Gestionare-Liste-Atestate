@@ -201,7 +201,7 @@ export default function AllLists({ user }) {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <List className="w-8 h-8 text-pink-600" />
+            <List className="w-8 h-8 text-green-600" />
             <h1 className="text-2xl font-bold text-gray-900">Administrare Liste</h1>
           </div>
           <p className="text-gray-500 text-sm">Gestionarea completă a tuturor listelor de tipărire autorizații.</p>

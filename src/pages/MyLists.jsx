@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { apiClient } from "@/api/client";
 import StatusBadge from "../components/StatusBadge";
 import PDFViewerModal from "../components/PDFViewerModal";
-import { Search, ChevronUp, ChevronDown, Filter, Eye } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, Filter, Eye, List } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "react-router-dom";
 
@@ -112,7 +112,10 @@ export default function MyLists({ user }) {
       )}
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Listele Mele</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <List className="w-8 h-8 text-green-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Listele Mele</h1>
+        </div>
         <p className="text-gray-500 mt-1 text-sm">
           {user?.isf_name && <span className="font-medium text-blue-600">{user.isf_name}</span>} — toate listele dvs. de tipărire.
         </p>

@@ -42,11 +42,27 @@ export default function Settings({ user }) {
       setLoading(true);
       const data = await apiClient.getAllUsers();
       
-      // Sort users: georgiana.ghimes first, then other admins, then by role
+      // Sort users: bogdan.petru first, dan.barbut second, georgiana.ghimes third, then daniel.bulearca, then florin.hritcu, then other admins, then by role
       const sortedUsers = data.sort((a, b) => {
-        // Georgiana is always first
+        // Bogdan Petru is always first
+        if (a.email === 'bogdan.petru@sigurantaferoviara.ro') return -1;
+        if (b.email === 'bogdan.petru@sigurantaferoviara.ro') return 1;
+        
+        // Dan Barbut is second
+        if (a.email === 'dan.barbut@sigurantaferoviara.ro') return -1;
+        if (b.email === 'dan.barbut@sigurantaferoviara.ro') return 1;
+        
+        // Georgiana is third
         if (a.email === 'georgiana.ghimes@sigurantaferoviara.ro') return -1;
         if (b.email === 'georgiana.ghimes@sigurantaferoviara.ro') return 1;
+        
+        // Daniel is fourth
+        if (a.email === 'daniel.bulearca@sigurantaferoviara.ro') return -1;
+        if (b.email === 'daniel.bulearca@sigurantaferoviara.ro') return 1;
+        
+        // Florin is fifth
+        if (a.email === 'florin.hritcu@sigurantaferoviara.ro') return -1;
+        if (b.email === 'florin.hritcu@sigurantaferoviara.ro') return 1;
         
         // Then other admins
         if (a.role === 'admin' && b.role !== 'admin') return -1;
@@ -463,7 +479,10 @@ export default function Settings({ user }) {
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-900">{u.email}</span>
-                            {u.email === 'georgiana.ghimes@sigurantaferoviara.ro' && (
+                            {u.email === 'georgiana.ghimes@sigurantaferoviara.ro' ? (
+                              <Star className="w-4 h-4 text-cyan-500 fill-cyan-500" title="Administrator Suprem & Developer" />
+                            ) : (u.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                                  u.email === 'dan.barbut@sigurantaferoviara.ro') && (
                               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Administrator Suprem" />
                             )}
                           </div>
@@ -482,9 +501,16 @@ export default function Settings({ user }) {
                             <option value="admin">Administrator</option>
                           </select>
                         ) : (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${roleColors[u.role]}`}>
-                            {roleLabels[u.role]}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${roleColors[u.role]}`}>
+                              {roleLabels[u.role]}
+                            </span>
+                            {u.email === 'georgiana.ghimes@sigurantaferoviara.ro' && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-500 text-white">
+                                DEV
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -585,8 +611,11 @@ export default function Settings({ user }) {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            {/* Only georgiana.ghimes can edit admins, everyone can edit non-admins */}
-                            {(user.email === 'georgiana.ghimes@sigurantaferoviara.ro' || u.role !== 'admin') && (
+                            {/* Only super admins can edit admins, everyone can edit non-admins */}
+                            {((user.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                               user.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                               user.email === 'georgiana.ghimes@sigurantaferoviara.ro') || 
+                              u.role !== 'admin') && (
                               <button
                                 onClick={() => setEditingUser({ ...u, password: '', isf_name: u.isf_name || '', cisf_name: u.cisf_name || '', scsc_name: u.scsc_name || '', has_atestate_role: u.has_atestate_role || false, has_dre_role: u.has_dre_role || false })}
                                 className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
@@ -595,10 +624,12 @@ export default function Settings({ user }) {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                             )}
-                            {/* Only georgiana.ghimes can delete admins, and no one can delete themselves */}
+                            {/* Only super admins can delete admins, and no one can delete themselves */}
                             {u.id !== user.id && (
-                              user.email === 'georgiana.ghimes@sigurantaferoviara.ro' ? (
-                                // Georgiana can delete anyone except herself
+                              (user.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                               user.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                               user.email === 'georgiana.ghimes@sigurantaferoviara.ro') ? (
+                                // Super admins can delete anyone except themselves
                                 <button
                                   onClick={() => handleDeleteUser(u.id, u.email)}
                                   className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"

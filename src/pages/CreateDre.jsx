@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileText, AlertCircle } from "lucide-react";
+import { FileText, AlertCircle, FileStack } from "lucide-react";
 
 export default function CreateDre({ user }) {
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function CreateDre({ user }) {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <FileText className="w-8 h-8 text-purple-600" />
+            <FileStack className="w-8 h-8 text-purple-600" />
             <h1 className="text-2xl font-bold text-gray-900">Încărcare DRE</h1>
           </div>
           <p className="text-gray-500 text-sm">Încarcă un DRE nou în sistem</p>

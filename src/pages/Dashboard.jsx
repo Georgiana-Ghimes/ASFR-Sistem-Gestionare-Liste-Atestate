@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx-js-style';
 
 export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState(
-    user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' 
+    user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' || user?.email === 'alexandra.stefan@sigurantaferoviara.ro'
       ? "atestate" 
       : user?.email === 'florin.hritcu@sigurantaferoviara.ro'
         ? "dre"
@@ -869,7 +869,7 @@ export default function Dashboard({ user }) {
           <div className="mb-6">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex space-x-8">
-                {user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && user?.email !== 'florin.hritcu@sigurantaferoviara.ro' && (
+                {user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && user?.email !== 'alexandra.stefan@sigurantaferoviara.ro' && user?.email !== 'florin.hritcu@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("liste")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -893,7 +893,7 @@ export default function Dashboard({ user }) {
                     Statistici Atestate
                   </button>
                 )}
-                {(user?.has_dre_role || user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') && user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && (
+                {(user?.has_dre_role || user?.role === 'admin' || user?.email === 'florin.hritcu@sigurantaferoviara.ro') && user?.email !== 'cecilia.mihaila@sigurantaferoviara.ro' && user?.email !== 'alexandra.stefan@sigurantaferoviara.ro' && (
                   <button
                     onClick={() => setActiveTab("dre")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${

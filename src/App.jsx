@@ -41,7 +41,7 @@ const AppLayout = () => {
       <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Navigate to={
-            user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' 
+            user?.email === 'cecilia.mihaila@sigurantaferoviara.ro' || user?.email === 'alexandra.stefan@sigurantaferoviara.ro'
               ? '/all-atestate' 
               : user?.email === 'florin.hritcu@sigurantaferoviara.ro'
                 ? '/all-dre'

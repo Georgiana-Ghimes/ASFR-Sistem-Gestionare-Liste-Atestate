@@ -11,13 +11,14 @@ export default function Sidebar({ user }) {
   const hasAtestateRole = user?.has_atestate_role;
   const hasDreRole = user?.has_dre_role;
   const isCecilia = user?.email === 'cecilia.mihaila@sigurantaferoviara.ro';
+  const isAlexandra = user?.email === 'alexandra.stefan@sigurantaferoviara.ro';
   const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
 
   let navItems = [];
 
-  if (isCecilia) {
-    // Cecilia vede Dashboard și meniurile de Atestate
+  if (isCecilia || isAlexandra) {
+    // Cecilia și Alexandra văd Dashboard și meniurile de Atestate
     navItems = [
       { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Administrare Atestate", path: "/all-atestate", icon: Award },
