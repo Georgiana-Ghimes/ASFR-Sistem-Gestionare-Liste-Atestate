@@ -120,8 +120,29 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
       infrastructura_practic
     } = req.body;
     
-    // Validate required fields
-    if (!nr_declaratie || !nume_examinator || !tip_declaratie || !limba_evaluare || !data_emitere || !data_expirare) {
+    // Log received data for debugging
+    console.log('Received DRE data:', {
+      nr_declaratie,
+      nume_examinator,
+      tip_declaratie,
+      limba_evaluare,
+      data_emitere,
+      data_expirare
+    });
+    console.log('Full req.body:', req.body);
+    
+    // Validate required fields (trim strings to check for empty values)
+    if (!nr_declaratie?.trim() || !nume_examinator?.trim() || !tip_declaratie?.trim() || 
+        !limba_evaluare?.trim() || !data_emitere?.trim() || !data_expirare?.trim()) {
+      console.log('Validation failed - missing required fields');
+      console.log('Failed checks:', {
+        nr_declaratie: !nr_declaratie?.trim(),
+        nume_examinator: !nume_examinator?.trim(),
+        tip_declaratie: !tip_declaratie?.trim(),
+        limba_evaluare: !limba_evaluare?.trim(),
+        data_emitere: !data_emitere?.trim(),
+        data_expirare: !data_expirare?.trim()
+      });
       return res.status(400).json({ error: 'Toate câmpurile obligatorii trebuie completate' });
     }
     

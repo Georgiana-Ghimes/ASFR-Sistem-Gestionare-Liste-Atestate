@@ -17,7 +17,7 @@ export default function CreateDre({ user }) {
     nr_declaratie_part3: "",
     nume_examinator: "",
     tip_declaratie: "noua",
-    limba_evaluare: "",
+    limba_evaluare: "Română",
     data_emitere: "",
     data_expirare: "",
     material_rulant_teoretic: false,
@@ -88,6 +88,17 @@ export default function CreateDre({ user }) {
       formDataToSend.append('material_rulant_practic', formData.material_rulant_practic);
       formDataToSend.append('infrastructura_teoretic', formData.infrastructura_teoretic);
       formDataToSend.append('infrastructura_practic', formData.infrastructura_practic);
+      
+      // Debug: Log what we're sending
+      console.log('Sending DRE data:', {
+        nr_declaratie,
+        nume_examinator: formData.nume_examinator,
+        tip_declaratie: formData.tip_declaratie,
+        limba_evaluare: formData.limba_evaluare,
+        data_emitere: formData.data_emitere,
+        data_expirare: formData.data_expirare,
+        attachments_count: attachments.length
+      });
       
       // Append all attachment files
       attachments.forEach((file) => {
@@ -226,7 +237,6 @@ export default function CreateDre({ user }) {
               onChange={(e) => setFormData({ ...formData, limba_evaluare: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
             >
-              <option value="">Selectează limba</option>
               <option value="Română">Română</option>
             </select>
           </div>
