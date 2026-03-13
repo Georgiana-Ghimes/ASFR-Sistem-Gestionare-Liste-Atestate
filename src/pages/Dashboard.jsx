@@ -1057,19 +1057,16 @@ export default function Dashboard({ user }) {
       XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
     });
 
-    // Create total year sheet
-    const activeOrgsYear = allOrgsFromDre.filter(org => {
-      return dre.some(d => {
-        if (d.organization_name !== org) return false;
-        if (d.created_at) {
-          const dt = new Date(d.created_at);
-          return getYear(dt) === currentYear;
-        }
-        return false;
-      });
-    });
+    // Create total year sheet - get ALL organizations that had DRE in the current year
+    const allOrgsInYear = [...new Set(dre.filter(d => {
+      if (d.created_at) {
+        const dt = new Date(d.created_at);
+        return getYear(dt) === currentYear;
+      }
+      return false;
+    }).map(d => d.organization_name).filter(Boolean))].sort();
 
-    if (activeOrgsYear.length > 0) {
+    if (allOrgsInYear.length > 0) {
       const indicators = [
         "Total DRE",
         "NOU",
@@ -1080,15 +1077,15 @@ export default function Dashboard({ user }) {
       const yearData = [];
       
       const headerRow = [];
-      activeOrgsYear.forEach((org, index) => {
+      allOrgsInYear.forEach((org, index) => {
         headerRow.push(org);
-        if (index < activeOrgsYear.length - 1) headerRow.push("");
+        if (index < allOrgsInYear.length - 1) headerRow.push("");
       });
       yearData.push(headerRow);
 
       indicators.forEach((indicator, indicatorIndex) => {
         const row = [];
-        activeOrgsYear.forEach((org, orgIndex) => {
+        allOrgsInYear.forEach((org, orgIndex) => {
           const orgDre = dre.filter((d) => {
             if (d.organization_name !== org) return false;
             if (d.created_at) {
@@ -1105,14 +1102,14 @@ export default function Dashboard({ user }) {
           else if (indicatorIndex === 3) value = orgDre.filter(d => d.tip_declaratie === "modificata").length;
 
           row.push(`${indicator}: ${value}`);
-          if (orgIndex < activeOrgsYear.length - 1) row.push("");
+          if (orgIndex < allOrgsInYear.length - 1) row.push("");
         });
         yearData.push(row);
       });
 
       const yearWorksheet = XLSX.utils.aoa_to_sheet(yearData);
 
-      activeOrgsYear.forEach((org, orgIndex) => {
+      allOrgsInYear.forEach((org, orgIndex) => {
         const colIndex = orgIndex * 2;
         for (let R = 0; R <= 4; R++) {
           const cellAddress = XLSX.utils.encode_cell({ r: R, c: colIndex });
