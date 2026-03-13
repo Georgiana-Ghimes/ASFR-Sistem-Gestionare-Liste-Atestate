@@ -287,7 +287,7 @@ router.get('/:id/download', authenticateToken, async (req, res) => {
         const filePath = path.join(uploadsDir, filename);
         
         if (fs.existsSync(filePath)) {
-          archive.file(filePath, { name: `Atasament_${index + 1}_${fileInfo.filename}` });
+          archive.file(filePath, { name: fileInfo.filename });
         } else {
           console.warn(`File not found: ${filePath}`);
         }
