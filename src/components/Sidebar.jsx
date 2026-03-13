@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { LayoutDashboard, List, FilePlus, LogOut, FileText, Settings, Award, FileBadge, Download, FileStack, ChevronLeft, ChevronRight } from "lucide-react";
 
+// Sidebar component - v1.0.1
 export default function Sidebar({ user }) {
   const location = useLocation();
   const { logout } = useAuth();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, AlertCircle, CheckCircle, Save, Upload } from "lucide-react";
 import { apiClient } from "../api/client";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,6 @@ export default function CreateDre({ user }) {
   const [success, setSuccess] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [organizations, setOrganizations] = useState([]);
-  const [loadingOrgs, setLoadingOrgs] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -33,14 +32,29 @@ export default function CreateDre({ user }) {
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
   const hasDreRole = user?.has_dre_role;
   const canAccess = user?.role === 'admin' || isFlorin || (isRegularUser && hasDreRole);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    loadOrganizations();
-  }, []);
+    if (user) {
+      // Pre-select organization for non-admin users immediately
+      if (!isAdmin && !isFlorin) {
+        const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
+        if (userOrgName) {
+          setFormData(prev => ({
+            ...prev,
+            organization_name: userOrgName
+          }));
+        }
+      } else {
+        // Load organizations only for admin users
+        loadOrganizations();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const loadOrganizations = async () => {
     try {
-      setLoadingOrgs(true);
       const users = await apiClient.getAllUsers();
       let orgs = users
         .filter(u => u.isf_name || u.cisf_name || u.scsc_name)
@@ -54,21 +68,8 @@ export default function CreateDre({ user }) {
         .sort((a, b) => a.name.localeCompare(b.name));
       
       setOrganizations(orgs);
-
-      // Pre-select organization for non-admin users
-      if (user.role !== 'admin' && !isFlorin) {
-        const userOrgName = user.isf_name || user.cisf_name || user.scsc_name;
-        if (userOrgName) {
-          setFormData(prev => ({
-            ...prev,
-            organization_name: userOrgName
-          }));
-        }
-      }
     } catch (err) {
       console.error('Failed to load organizations:', err);
-    } finally {
-      setLoadingOrgs(false);
     }
   };
 
@@ -202,12 +203,7 @@ export default function CreateDre({ user }) {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               ISF / CISF / SCSC <span className="text-red-500">*</span>
             </label>
-            {loadingOrgs ? (
-              <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-gray-500">Se încarcă...</span>
-              </div>
-            ) : (user.role === 'admin' || isFlorin) ? (
+            {(isAdmin || isFlorin) ? (
               <select
                 value={formData.organization_name}
                 onChange={(e) => setFormData({ ...formData, organization_name: e.target.value })}
@@ -222,7 +218,7 @@ export default function CreateDre({ user }) {
               </select>
             ) : (
               <div className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-700 font-medium">
-                {formData.organization_name || 'Se încarcă...'}
+                {formData.organization_name || (user?.isf_name || user?.cisf_name || user?.scsc_name) || 'Necunoscut'}
               </div>
             )}
           </div>
