@@ -17,7 +17,7 @@ export default function CreateDre({ user }) {
     nr_declaratie_part3: "",
     nume_examinator: "",
     tip_declaratie: "noua",
-    limba_evaluare: "Română",
+    limba_evaluare: "",
     data_emitere: "",
     data_expirare: "",
     material_rulant_teoretic: false,
@@ -65,7 +65,7 @@ export default function CreateDre({ user }) {
       return; 
     }
     if (!formData.nume_examinator.trim()) { setError("Numele examinatorului este obligatoriu."); return; }
-    if (!formData.limba_evaluare.trim()) { setError("Limba de evaluare este obligatorie."); return; }
+    if (!formData.limba_evaluare || !formData.limba_evaluare.trim()) { setError("Limba de evaluare este obligatorie."); return; }
     if (!formData.data_emitere) { setError("Data emiterii este obligatorie."); return; }
     if (!formData.data_expirare) { setError("Data expirării este obligatorie."); return; }
     
@@ -237,6 +237,7 @@ export default function CreateDre({ user }) {
               onChange={(e) => setFormData({ ...formData, limba_evaluare: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
             >
+              <option value="">Selectează limba</option>
               <option value="Română">Română</option>
             </select>
           </div>
