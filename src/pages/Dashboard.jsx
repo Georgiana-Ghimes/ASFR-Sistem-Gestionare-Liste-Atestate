@@ -991,7 +991,7 @@ export default function Dashboard({ user }) {
       if (activeOrgs.length === 0) {
         const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru această lună"]]);
         XLSX.utils.book_append_sheet(workbook, worksheet, month.l);
-        return;
+        return; // Continue to next month
       }
 
       const indicators = [
@@ -1066,14 +1066,22 @@ export default function Dashboard({ user }) {
       return false;
     }).map(d => d.organization_name).filter(Boolean))].sort();
 
-    if (allOrgsInYear.length > 0) {
-      const indicators = [
-        "Total DRE",
-        "NOU",
-        "REÎNNOIT",
-        "MODIFICAT"
-      ];
+    console.log('[DRE Report] Organizations in year:', allOrgsInYear);
+    console.log('[DRE Report] Total DRE count:', dre.length);
 
+    // Always create the Total sheet, even if empty
+    const indicators = [
+      "Total DRE",
+      "NOU",
+      "REÎNNOIT",
+      "MODIFICAT"
+    ];
+
+    if (allOrgsInYear.length === 0) {
+      // Create empty total sheet
+      const worksheet = XLSX.utils.aoa_to_sheet([["Nu există date pentru acest an"]]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, `Total ${currentYear}`);
+    } else {
       const yearData = [];
       
       const headerRow = [];
