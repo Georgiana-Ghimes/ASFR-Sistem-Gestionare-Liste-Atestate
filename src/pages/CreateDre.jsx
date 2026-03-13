@@ -89,17 +89,6 @@ export default function CreateDre({ user }) {
       formDataToSend.append('infrastructura_teoretic', formData.infrastructura_teoretic);
       formDataToSend.append('infrastructura_practic', formData.infrastructura_practic);
       
-      // Debug: Log what we're sending
-      console.log('Sending DRE data:', {
-        nr_declaratie,
-        nume_examinator: formData.nume_examinator,
-        tip_declaratie: formData.tip_declaratie,
-        limba_evaluare: formData.limba_evaluare,
-        data_emitere: formData.data_emitere,
-        data_expirare: formData.data_expirare,
-        attachments_count: attachments.length
-      });
-      
       // Append all attachment files
       attachments.forEach((file) => {
         formDataToSend.append('files', file);

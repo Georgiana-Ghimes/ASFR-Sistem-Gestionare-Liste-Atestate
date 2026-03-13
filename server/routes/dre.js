@@ -120,30 +120,20 @@ router.post('/', authenticateToken, upload.array('files', 20), async (req, res) 
       infrastructura_practic
     } = req.body;
     
-    // Log received data for debugging
-    console.log('Received DRE data:', {
-      nr_declaratie,
-      nume_examinator,
-      tip_declaratie,
-      limba_evaluare,
-      data_emitere,
-      data_expirare
-    });
-    console.log('Full req.body:', req.body);
+    // Validate required fields
+    const missingFields = [];
+    if (!nr_declaratie?.trim()) missingFields.push('nr_declaratie');
+    if (!nume_examinator?.trim()) missingFields.push('nume_examinator');
+    if (!tip_declaratie?.trim()) missingFields.push('tip_declaratie');
+    if (!limba_evaluare?.trim()) missingFields.push('limba_evaluare');
+    if (!data_emitere?.trim()) missingFields.push('data_emitere');
+    if (!data_expirare?.trim()) missingFields.push('data_expirare');
     
-    // Validate required fields (trim strings to check for empty values)
-    if (!nr_declaratie?.trim() || !nume_examinator?.trim() || !tip_declaratie?.trim() || 
-        !limba_evaluare?.trim() || !data_emitere?.trim() || !data_expirare?.trim()) {
-      console.log('Validation failed - missing required fields');
-      console.log('Failed checks:', {
-        nr_declaratie: !nr_declaratie?.trim(),
-        nume_examinator: !nume_examinator?.trim(),
-        tip_declaratie: !tip_declaratie?.trim(),
-        limba_evaluare: !limba_evaluare?.trim(),
-        data_emitere: !data_emitere?.trim(),
-        data_expirare: !data_expirare?.trim()
+    if (missingFields.length > 0) {
+      console.log('Validation failed - missing fields:', missingFields);
+      return res.status(400).json({ 
+        error: `Câmpuri obligatorii lipsă: ${missingFields.join(', ')}` 
       });
-      return res.status(400).json({ error: 'Toate câmpurile obligatorii trebuie completate' });
     }
     
     // Check if declaration number already exists

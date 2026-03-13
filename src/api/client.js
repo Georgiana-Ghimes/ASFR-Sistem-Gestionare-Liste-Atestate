@@ -202,10 +202,11 @@ class ApiClient {
     return this.request('/dre/my');
   }
 
-  async createDre(dreData) {
+  async createDre(formData) {
     return this.request('/dre', {
       method: 'POST',
-      body: JSON.stringify(dreData)
+      body: formData,
+      isFormData: true
     });
   }
 
