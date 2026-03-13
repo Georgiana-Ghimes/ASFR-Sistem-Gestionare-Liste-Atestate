@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, AlertCircle, CheckCircle, Save } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle, Save, Upload } from "lucide-react";
 import { apiClient } from "../api/client";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,7 @@ export default function CreateDre({ user }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -30,6 +31,31 @@ export default function CreateDre({ user }) {
   const hasDreRole = user?.has_dre_role;
   const canAccess = user?.role === 'admin' || isFlorin || (isRegularUser && hasDreRole);
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    for (const file of files) {
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      if (!validTypes.includes(file.type)) {
+        setError("Sunt acceptate doar fișiere PDF sau Word (.doc, .docx).");
+        return;
+      }
+      
+      if (file.size > 50 * 1024 * 1024) {
+        setError("Dimensiunea fiecărui fișier nu poate depăși 50MB.");
+        return;
+      }
+    }
+    
+    setAttachments(files);
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -49,17 +75,26 @@ export default function CreateDre({ user }) {
       // Combine the three parts into nr_declaratie
       const nr_declaratie = `${formData.nr_declaratie_part1}/${formData.nr_declaratie_part2}/${formData.nr_declaratie_part3}`;
       
-      const dataToSend = {
-        ...formData,
-        nr_declaratie
-      };
+      const formDataToSend = new FormData();
       
-      // Remove the individual parts from the data sent to API
-      delete dataToSend.nr_declaratie_part1;
-      delete dataToSend.nr_declaratie_part2;
-      delete dataToSend.nr_declaratie_part3;
+      // Add all form fields
+      formDataToSend.append('nr_declaratie', nr_declaratie);
+      formDataToSend.append('nume_examinator', formData.nume_examinator);
+      formDataToSend.append('tip_declaratie', formData.tip_declaratie);
+      formDataToSend.append('limba_evaluare', formData.limba_evaluare);
+      formDataToSend.append('data_emitere', formData.data_emitere);
+      formDataToSend.append('data_expirare', formData.data_expirare);
+      formDataToSend.append('material_rulant_teoretic', formData.material_rulant_teoretic);
+      formDataToSend.append('material_rulant_practic', formData.material_rulant_practic);
+      formDataToSend.append('infrastructura_teoretic', formData.infrastructura_teoretic);
+      formDataToSend.append('infrastructura_practic', formData.infrastructura_practic);
       
-      await apiClient.createDre(dataToSend);
+      // Append all attachment files
+      attachments.forEach((file) => {
+        formDataToSend.append('files', file);
+      });
+      
+      await apiClient.createDre(formDataToSend);
       setSuccess(true);
       
       // Redirect based on user role
@@ -285,6 +320,43 @@ export default function CreateDre({ user }) {
                 onChange={(e) => setFormData({ ...formData, data_expirare: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
+            </div>
+          </div>
+
+          {/* Attachments Section */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Atașamente
+            </label>
+            <p className="text-xs text-gray-500 mb-3">Încărcați fișiere PDF sau Word (opțional)</p>
+            
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-purple-300 transition-colors cursor-pointer relative">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                multiple
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              {attachments.length > 0 ? (
+                <div className="space-y-2">
+                  {attachments.map((file, index) => (
+                    <div key={index} className="flex items-center justify-center gap-3 p-2 bg-gray-50 rounded-lg">
+                      <FileText className="w-6 h-6 text-purple-500 flex-shrink-0" />
+                      <div className="text-left flex-1">
+                        <p className="text-sm font-semibold text-gray-800">{file.name}</p>
+                        <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 font-medium">Click pentru a selecta fișiere</p>
+                  <p className="text-xs text-gray-400 mt-1">Format: PDF sau Word (.doc, .docx) • Maxim 50MB per fișier</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
