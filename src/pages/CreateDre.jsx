@@ -55,20 +55,30 @@ export default function CreateDre({ user }) {
 
   // Auto-calculate data_expirare when data_emitere or tip_declaratie changes
   useEffect(() => {
-    if (formData.data_emitere && formData.tip_declaratie === 'reinnoita') {
+    if (formData.data_emitere) {
       const emitereDate = new Date(formData.data_emitere);
-      // Add 5 years and 1 day
       const expirareDate = new Date(emitereDate);
-      expirareDate.setFullYear(expirareDate.getFullYear() + 5);
-      expirareDate.setDate(expirareDate.getDate() + 1);
       
-      // Format as YYYY-MM-DD for input[type="date"]
-      const formattedDate = expirareDate.toISOString().split('T')[0];
+      if (formData.tip_declaratie === 'noua') {
+        // Add 2 years and 1 day for "noua"
+        expirareDate.setFullYear(expirareDate.getFullYear() + 2);
+        expirareDate.setDate(expirareDate.getDate() + 1);
+      } else if (formData.tip_declaratie === 'reinnoita') {
+        // Add 5 years and 1 day for "reinnoita"
+        expirareDate.setFullYear(expirareDate.getFullYear() + 5);
+        expirareDate.setDate(expirareDate.getDate() + 1);
+      }
       
-      setFormData(prev => ({
-        ...prev,
-        data_expirare: formattedDate
-      }));
+      // Only auto-calculate for "noua" and "reinnoita", not for "modificata"
+      if (formData.tip_declaratie === 'noua' || formData.tip_declaratie === 'reinnoita') {
+        // Format as YYYY-MM-DD for input[type="date"]
+        const formattedDate = expirareDate.toISOString().split('T')[0];
+        
+        setFormData(prev => ({
+          ...prev,
+          data_expirare: formattedDate
+        }));
+      }
     }
   }, [formData.data_emitere, formData.tip_declaratie]);
 
