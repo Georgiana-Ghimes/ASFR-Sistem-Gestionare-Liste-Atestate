@@ -184,18 +184,24 @@ router.get('/check-examinator/:nume/:organization', authenticateToken, async (re
   try {
     const { nume, organization } = req.params;
     
+    console.log('[DRE Check Backend] Checking:', { nume, organization });
+    
     const result = await pool.query(
-      'SELECT data_expirare FROM DRE WHERE UPPER(nume_examinator) = UPPER($1) AND organization_name = $2 AND is_archived = false ORDER BY created_at DESC LIMIT 1',
+      'SELECT data_expirare, tip_declaratie FROM DRE WHERE UPPER(nume_examinator) = UPPER($1) AND organization_name = $2 AND is_archived = false ORDER BY created_at DESC LIMIT 1',
       [nume, organization]
     );
     
+    console.log('[DRE Check Backend] Query result:', result.rows);
+    
     if (result.rows.length > 0) {
+      console.log('[DRE Check Backend] Found DRE with expiration:', result.rows[0].data_expirare);
       res.json({ exists: true, data_expirare: result.rows[0].data_expirare });
     } else {
+      console.log('[DRE Check Backend] No DRE found');
       res.json({ exists: false });
     }
   } catch (error) {
-    console.error('Check examinator error:', error);
+    console.error('[DRE Check Backend] Error:', error);
     res.status(500).json({ error: 'Eroare internă de server' });
   }
 });

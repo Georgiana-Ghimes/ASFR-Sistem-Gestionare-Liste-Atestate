@@ -85,24 +85,36 @@ export default function CreateDre({ user }) {
   // Check for existing examinator when tip_declaratie is "modificata"
   useEffect(() => {
     const checkExaminator = async () => {
+      console.log('[DRE Check] Checking examinator:', {
+        tip: formData.tip_declaratie,
+        nume: formData.nume_examinator,
+        org: formData.organization_name
+      });
+      
       if (formData.tip_declaratie === 'modificata' && 
           formData.nume_examinator.trim() && 
           formData.organization_name) {
         try {
+          console.log('[DRE Check] Making API call...');
           const result = await apiClient.checkExaminatorDre(
             formData.nume_examinator.trim(),
             formData.organization_name
           );
           
+          console.log('[DRE Check] API result:', result);
+          
           if (result.exists && result.data_expirare) {
+            console.log('[DRE Check] Setting expiration date:', result.data_expirare);
             // Pre-fill expiration date from existing DRE
             setFormData(prev => ({
               ...prev,
               data_expirare: result.data_expirare
             }));
+          } else {
+            console.log('[DRE Check] No existing DRE found');
           }
         } catch (error) {
-          console.error('Error checking examinator:', error);
+          console.error('[DRE Check] Error checking examinator:', error);
         }
       }
     };
