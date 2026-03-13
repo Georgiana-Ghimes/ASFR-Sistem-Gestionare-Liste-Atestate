@@ -12,6 +12,7 @@ import AllAtestate from './pages/AllAtestate';
 import CreateAtestat from './pages/CreateAtestat';
 import AllDre from './pages/AllDre';
 import CreateDre from './pages/CreateDre';
+import MyDre from './pages/MyDre';
 import Sidebar from './components/Sidebar';
 
 const ProtectedRoute = ({ children }) => {
@@ -55,6 +56,7 @@ const AppLayout = () => {
           <Route path="/my-atestate" element={<MyAtestate user={user} />} />
           <Route path="/all-atestate" element={<AllAtestate user={user} />} />
           <Route path="/create-atestat" element={<CreateAtestat user={user} />} />
+          <Route path="/my-dre" element={<MyDre user={user} />} />
           <Route path="/all-dre" element={<AllDre user={user} />} />
           <Route path="/create-dre" element={<CreateDre user={user} />} />
         </Routes>

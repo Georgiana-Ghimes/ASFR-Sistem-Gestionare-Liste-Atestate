@@ -44,7 +44,7 @@ export default function Sidebar({ user }) {
       { label: "Setări", path: "/settings", icon: Settings }
     ];
   } else if (isRegularUser) {
-    // Utilizatorii ISF/CISF/SCSC văd doar zonele lor
+    // Utilizatorii ISF/CISF/SCSC văd zonele lor
     navItems = [
       { label: "Statistici", path: "/dashboard", icon: LayoutDashboard },
       { label: "Listele mele", path: "/my-lists", icon: List },

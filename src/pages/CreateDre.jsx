@@ -5,7 +5,9 @@ export default function CreateDre({ user }) {
   const [loading, setLoading] = useState(false);
 
   const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
-  const canAccess = user?.role === 'admin' || isFlorin;
+  const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
+  const hasDreRole = user?.has_dre_role;
+  const canAccess = user?.role === 'admin' || isFlorin || (isRegularUser && hasDreRole);
 
   if (!user || !canAccess) {
     return (

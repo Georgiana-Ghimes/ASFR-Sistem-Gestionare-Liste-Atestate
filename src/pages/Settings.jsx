@@ -4,6 +4,8 @@ import { AlertCircle, Settings as SettingsIcon, Users, Plus, Edit2, Trash2, Save
 
 export default function Settings({ user }) {
   const [activeTab, setActiveTab] = useState('users');
+  const [userTypeTab, setUserTypeTab] = useState('admins');
+  const [adminSubTab, setAdminSubTab] = useState('supreme');
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditTotal, setAuditTotal] = useState(0);
@@ -442,6 +444,86 @@ export default function Settings({ user }) {
           )}
         </div>
 
+        {/* User Type Tabs */}
+        <div className="border-b border-gray-200 px-6">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setUserTypeTab('admins')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                userTypeTab === 'admins'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Administratori ({users.filter(u => u.role === 'admin').length})
+            </button>
+            <button
+              onClick={() => setUserTypeTab('users')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                userTypeTab === 'users'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Utilizatori ({users.filter(u => u.role !== 'admin').length})
+            </button>
+          </nav>
+        </div>
+
+        {/* Admin Sub-Tabs */}
+        {userTypeTab === 'admins' && (
+          <>
+            <div className="border-b border-gray-100 px-6 bg-gray-50">
+              <nav className="-mb-px flex space-x-6">
+                <button
+                  onClick={() => setAdminSubTab('supreme')}
+                  className={`py-3 px-1 border-b-2 font-medium text-xs transition-colors flex items-center gap-1.5 ${
+                    adminSubTab === 'supreme'
+                      ? 'border-yellow-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Star className={`w-3.5 h-3.5 ${adminSubTab === 'supreme' ? 'text-yellow-500 fill-yellow-500' : 'fill-current'}`} />
+                  Administratori Supremi ({users.filter(u => 
+                    u.role === 'admin' && 
+                    (u.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                     u.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                     u.email === 'georgiana.ghimes@sigurantaferoviara.ro')
+                  ).length})
+                </button>
+                <button
+                  onClick={() => setAdminSubTab('regular')}
+                  className={`py-3 px-1 border-b-2 font-medium text-xs transition-colors ${
+                    adminSubTab === 'regular'
+                      ? 'border-purple-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Administratori ({users.filter(u => 
+                    u.role === 'admin' && 
+                    u.email !== 'bogdan.petru@sigurantaferoviara.ro' && 
+                    u.email !== 'dan.barbut@sigurantaferoviara.ro' && 
+                    u.email !== 'georgiana.ghimes@sigurantaferoviara.ro'
+                  ).length})
+                </button>
+              </nav>
+            </div>
+            
+            {/* Admin Description */}
+            <div className="px-6 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+              {adminSubTab === 'supreme' ? (
+                <p className="text-xs text-gray-600">
+                  Administratorii supremi au acces complet la întregul sistem, inclusiv gestionarea tuturor utilizatorilor și setărilor.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-600">
+                  Administratorii au acces la zonele care le sunt atribuite (Liste, Atestate, DRE).
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -462,12 +544,21 @@ export default function Settings({ user }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {users.map((u) => {
+                {users
+                  .filter(u => {
+                    if (userTypeTab === 'admins') {
+                      if (u.role !== 'admin') return false;
+                      const isSupreme = u.email === 'bogdan.petru@sigurantaferoviara.ro' || 
+                                       u.email === 'dan.barbut@sigurantaferoviara.ro' || 
+                                       u.email === 'georgiana.ghimes@sigurantaferoviara.ro';
+                      return adminSubTab === 'supreme' ? isSupreme : !isSupreme;
+                    }
+                    return u.role !== 'admin';
+                  })
+                  .map((u) => {
                   const isEditing = editingUser?.id === u.id;
                   return (
-                    <tr key={u.id} className={`transition-colors ${
-                      u.role === 'admin' ? 'bg-purple-50/30 hover:bg-purple-50/50' : 'hover:bg-gray-50/50'
-                    }`}>
+                    <tr key={u.id} className="transition-colors hover:bg-gray-50/50">
                       <td className="px-6 py-4">
                         {isEditing ? (
                           <input
