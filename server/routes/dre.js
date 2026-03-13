@@ -245,6 +245,68 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
+// TODO: Future endpoint - Move DRE to archive (vechi)
+// router.patch('/:id/archive', authenticateToken, requireRole('admin'), async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     
+//     const result = await pool.query(
+//       'UPDATE DRE SET is_archived = true, archived_at = NOW() WHERE id = $1 RETURNING nr_declaratie',
+//       [id]
+//     );
+//     
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ error: 'DRE negăsit' });
+//     }
+//     
+//     // Audit log
+//     await logAudit(
+//       req.user.email,
+//       'ARCHIVE_DRE',
+//       'DRE',
+//       id,
+//       { nr_declaratie: result.rows[0].nr_declaratie },
+//       req.ip
+//     );
+//     
+//     res.json({ message: 'DRE arhivat cu succes' });
+//   } catch (error) {
+//     console.error('Archive DRE error:', error);
+//     res.status(500).json({ error: 'Eroare internă de server' });
+//   }
+// });
+
+// TODO: Future endpoint - Restore DRE from archive
+// router.patch('/:id/restore', authenticateToken, requireRole('admin'), async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     
+//     const result = await pool.query(
+//       'UPDATE DRE SET is_archived = false, archived_at = NULL WHERE id = $1 RETURNING nr_declaratie',
+//       [id]
+//     );
+//     
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({ error: 'DRE negăsit' });
+//     }
+//     
+//     // Audit log
+//     await logAudit(
+//       req.user.email,
+//       'RESTORE_DRE',
+//       'DRE',
+//       id,
+//       { nr_declaratie: result.rows[0].nr_declaratie },
+//       req.ip
+//     );
+//     
+//     res.json({ message: 'DRE restaurat cu succes' });
+//   } catch (error) {
+//     console.error('Restore DRE error:', error);
+//     res.status(500).json({ error: 'Eroare internă de server' });
+//   }
+// });
+
 // Download DRE files as ZIP
 router.get('/:id/download', authenticateToken, async (req, res) => {
   try {
