@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileStack, AlertCircle, Trash2, Search, Filter, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { FileStack, AlertCircle, Trash2, Search, Filter, Download, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { apiClient } from "../api/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -24,6 +24,7 @@ export default function AllDre({ user }) {
   const [sortDir, setSortDir] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [downloading, setDownloading] = useState(null);
 
   const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
   const canAccess = user?.role === 'admin' || isFlorin;
@@ -58,6 +59,40 @@ export default function AllDre({ user }) {
       loadDreList();
     } catch (error) {
       toast.error(error.message || 'Eroare la ștergerea DRE');
+    }
+  };
+
+  const handleDownload = async (id, nrDeclaratie) => {
+    try {
+      setDownloading(id);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/dre/${id}/download`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Nu există fișiere atașate la acest DRE');
+          return;
+        }
+        throw new Error('Download failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dre_${nrDeclaratie.replace(/\//g, '_')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Eroare la descărcarea fișierelor');
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -341,13 +376,27 @@ export default function AllDre({ user }) {
                         {formatDate(dre.data_expirare)}
                       </td>
                       <td className="border border-gray-300 px-3 py-3 text-center">
-                        <button
-                          onClick={() => handleDelete(dre.id, dre.nr_declaratie)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Șterge DRE"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleDownload(dre.id, dre.nr_declaratie)}
+                            disabled={downloading === dre.id}
+                            className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:opacity-50 transition-colors"
+                            title="Descarcă fișiere (ZIP)"
+                          >
+                            {downloading === dre.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(dre.id, dre.nr_declaratie)}
+                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                            title="Șterge DRE"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

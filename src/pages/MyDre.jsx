@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileStack, AlertCircle, Search, Filter, Download, ChevronUp, ChevronDown } from "lucide-react";
+import { FileStack, AlertCircle, Search, Filter, Download, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { apiClient } from "../api/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -23,6 +23,7 @@ export default function MyDre({ user }) {
   const [sortDir, setSortDir] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [downloading, setDownloading] = useState(null);
 
   const isRegularUser = ['isf', 'cisf', 'scsc'].includes(user?.role);
   const hasDreRole = user?.has_dre_role;
@@ -89,6 +90,40 @@ export default function MyDre({ user }) {
     } else {
       setSortCol(col);
       setSortDir("asc");
+    }
+  };
+
+  const handleDownload = async (id, nrDeclaratie) => {
+    try {
+      setDownloading(id);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/dre/${id}/download`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Nu există fișiere atașate la acest DRE');
+          return;
+        }
+        throw new Error('Download failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dre_${nrDeclaratie.replace(/\//g, '_')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Eroare la descărcarea fișierelor');
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -250,6 +285,9 @@ export default function MyDre({ user }) {
                   <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
                     Valabilitate<br/>declarație*
                   </th>
+                  <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
+                    Acțiuni
+                  </th>
                 </tr>
                 
                 {/* Row 2 - Sub-categories */}
@@ -281,7 +319,7 @@ export default function MyDre({ user }) {
               <tbody>
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
+                    <td colSpan={12} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
                       Nu aveți DRE-uri în sistem
                     </td>
                   </tr>
@@ -321,6 +359,20 @@ export default function MyDre({ user }) {
                       </td>
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {formatDate(dre.data_expirare)}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-3 text-center">
+                        <button
+                          onClick={() => handleDownload(dre.id, dre.nr_declaratie)}
+                          disabled={downloading === dre.id}
+                          className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:opacity-50 transition-colors"
+                          title="Descarcă fișiere (ZIP)"
+                        >
+                          {downloading === dre.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                        </button>
                       </td>
                     </tr>
                   ))
