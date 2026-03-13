@@ -245,13 +245,13 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
   }
 });
 
-// Download DRE files (single file or ZIP)
+// Download DRE files as ZIP
 router.get('/:id/download', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     
     // Get DRE
-    const result = await pool.query('SELECT all_files, nr_declaratie FROM DRE WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM DRE WHERE id = $1', [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'DRE negăsit' });
@@ -259,73 +259,39 @@ router.get('/:id/download', authenticateToken, async (req, res) => {
     
     const dre = result.rows[0];
     
-    // Parse all_files - handle both string and object
-    let allFiles = dre.all_files;
-    
-    if (!allFiles) {
-      return res.status(404).json({ error: 'Nu există fișiere atașate' });
-    }
-    
-    // Force parse if string
-    if (typeof allFiles === 'string') {
-      try {
-        allFiles = JSON.parse(allFiles);
-      } catch (e) {
-        return res.status(500).json({ error: 'Eroare la procesarea fișierelor' });
-      }
-    }
-    
-    // Ensure it's an array
-    if (!Array.isArray(allFiles)) {
-      return res.status(500).json({ error: 'Format invalid pentru fișiere' });
-    }
-    
-    if (allFiles.length === 0) {
-      return res.status(404).json({ error: 'Nu există fișiere atașate' });
-    }
-    
-    const uploadsDir = path.join(__dirname, '..', 'uploads');
-    
-    // Single file - download directly
-    if (allFiles.length === 1) {
-      const fileInfo = allFiles[0];
-      const filename = path.basename(fileInfo.url);
-      const filePath = path.join(uploadsDir, filename);
-      
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Fișierul nu a fost găsit' });
-      }
-      
-      // Download single file with original name
-      return res.download(filePath, fileInfo.filename);
-    }
-    
-    // Multiple files - create ZIP
+    // Use nr_declaratie as ZIP filename (sanitize for filesystem)
     const sanitizedName = (dre.nr_declaratie || 'dre').replace(/[^a-zA-Z0-9_-]/g, '_');
+    
+    // Create ZIP archive
     const archive = archiver('zip', { zlib: { level: 9 } });
     
+    // Set response headers
     res.attachment(`${sanitizedName}.zip`);
     res.setHeader('Content-Type', 'application/zip');
     
     // Pipe archive to response
     archive.pipe(res);
     
-    // Handle errors
+    // Handle archive errors
     archive.on('error', (err) => {
       console.error('Archive error:', err);
       throw err;
     });
     
-    // Add files to archive
-    for (const [index, fileInfo] of allFiles.entries()) {
-      const filename = path.basename(fileInfo.url);
-      const filePath = path.join(uploadsDir, filename);
-      
-      if (fs.existsSync(filePath)) {
-        archive.file(filePath, { name: `Atasament_${index + 1}_${fileInfo.filename}` });
-      } else {
-        console.warn(`File not found: ${filePath}`);
-      }
+    // Add files to archive from all_files JSONB (already parsed by pg)
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    
+    if (dre.all_files && Array.isArray(dre.all_files)) {
+      dre.all_files.forEach((fileInfo, index) => {
+        const filename = path.basename(fileInfo.url);
+        const filePath = path.join(uploadsDir, filename);
+        
+        if (fs.existsSync(filePath)) {
+          archive.file(filePath, { name: `Atasament_${index + 1}_${fileInfo.filename}` });
+        } else {
+          console.warn(`File not found: ${filePath}`);
+        }
+      });
     }
     
     // Finalize the archive
