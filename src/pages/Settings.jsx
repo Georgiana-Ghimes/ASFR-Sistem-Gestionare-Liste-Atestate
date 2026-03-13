@@ -191,6 +191,14 @@ export default function Settings({ user }) {
         case 'DELETE_DRE':
           return details.nr_declaratie || '-';
         
+        case 'ARCHIVE_DRE':
+          return details.nr_declaratie 
+            ? `${details.nr_declaratie}${details.reason ? ` (${details.reason})` : ''}` 
+            : '-';
+        
+        case 'RESTORE_DRE':
+          return details.nr_declaratie || '-';
+        
         case 'LOGIN':
         case 'LOGOUT':
           return '-';
