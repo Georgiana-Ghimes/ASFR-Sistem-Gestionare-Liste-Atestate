@@ -285,9 +285,6 @@ export default function MyDre({ user }) {
                   <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
                     Valabilitate<br/>declarație*
                   </th>
-                  <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
-                    Acțiuni
-                  </th>
                 </tr>
                 
                 {/* Row 2 - Sub-categories */}
@@ -319,7 +316,7 @@ export default function MyDre({ user }) {
               <tbody>
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
+                    <td colSpan={11} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
                       Nu aveți DRE-uri în sistem
                     </td>
                   </tr>
@@ -359,20 +356,6 @@ export default function MyDre({ user }) {
                       </td>
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {formatDate(dre.data_expirare)}
-                      </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center">
-                        <button
-                          onClick={() => handleDownload(dre.id, dre.nr_declaratie)}
-                          disabled={downloading === dre.id}
-                          className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:opacity-50 transition-colors"
-                          title="Descarcă fișiere (ZIP)"
-                        >
-                          {downloading === dre.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Download className="w-4 h-4" />
-                          )}
-                        </button>
                       </td>
                     </tr>
                   ))

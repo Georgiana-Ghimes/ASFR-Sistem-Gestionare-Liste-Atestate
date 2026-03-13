@@ -28,6 +28,7 @@ export default function AllDre({ user }) {
 
   const isFlorin = user?.email === 'florin.hritcu@sigurantaferoviara.ro';
   const canAccess = user?.role === 'admin' || isFlorin;
+  const canManage = canAccess; // Doar admin și Florin pot gestiona (șterge/descărca)
 
   useEffect(() => {
     if (canAccess) {
@@ -300,9 +301,11 @@ export default function AllDre({ user }) {
                   <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
                     Valabilitate<br/>declarație*
                   </th>
-                  <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
-                    Acțiuni
-                  </th>
+                  {canManage && (
+                    <th rowSpan={3} className="border border-gray-300 px-3 py-3 text-center text-xs font-semibold text-gray-700">
+                      Acțiuni
+                    </th>
+                  )}
                 </tr>
                 
                 {/* Row 2 - Sub-categories */}
@@ -334,7 +337,7 @@ export default function AllDre({ user }) {
               <tbody>
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
+                    <td colSpan={canManage ? 12 : 11} className="border border-gray-300 px-3 py-8 text-center text-gray-500">
                       Nu există DRE-uri în sistem
                     </td>
                   </tr>
@@ -375,29 +378,31 @@ export default function AllDre({ user }) {
                       <td className="border border-gray-300 px-3 py-3 text-center text-sm text-gray-600">
                         {formatDate(dre.data_expirare)}
                       </td>
-                      <td className="border border-gray-300 px-3 py-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleDownload(dre.id, dre.nr_declaratie)}
-                            disabled={downloading === dre.id}
-                            className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:opacity-50 transition-colors"
-                            title="Descarcă fișiere (ZIP)"
-                          >
-                            {downloading === dre.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Download className="w-4 h-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleDelete(dre.id, dre.nr_declaratie)}
-                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                            title="Șterge DRE"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+                      {canManage && (
+                        <td className="border border-gray-300 px-3 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => handleDownload(dre.id, dre.nr_declaratie)}
+                              disabled={downloading === dre.id}
+                              className="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:opacity-50 transition-colors"
+                              title="Descarcă fișiere (ZIP)"
+                            >
+                              {downloading === dre.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(dre.id, dre.nr_declaratie)}
+                              className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                              title="Șterge DRE"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
