@@ -185,6 +185,12 @@ export default function Settings({ user }) {
         case 'DELETE_USER':
           return details.deleted_email ? `User: ${details.deleted_email}` : '-';
         
+        case 'CREATE_DRE':
+          return details.nr_declaratie || '-';
+        
+        case 'DELETE_DRE':
+          return details.nr_declaratie || '-';
+        
         case 'LOGIN':
         case 'LOGOUT':
           return '-';
