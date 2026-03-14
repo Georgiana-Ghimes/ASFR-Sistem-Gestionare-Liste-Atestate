@@ -34,8 +34,21 @@ server/.env.local
 server/uploads/*
 !server/uploads/.gitkeep
 
-# Scripts (development only)
-server/scripts/
+# Scripts (development only - one-off scripts)
+# migrate.js este inclus în git (necesar pentru CI/CD)
+server/scripts/add-*.js
+server/scripts/add-*.sql
+server/scripts/create-db.js
+server/scripts/create-atestate-table.js
+server/scripts/create-audit-table.js
+server/scripts/create-dre-tables.js
+server/scripts/setup-db.js
+server/scripts/recreate-*.js
+server/scripts/rename-*.js
+server/scripts/reset-*.js
+server/scripts/run-migration.js
+server/scripts/test-*.js
+server/scripts/update-*.js
 
 # Editor directories and files
 .vscode/*
@@ -58,7 +71,10 @@ Testing/
 # Documentation
 documentatie/
 
-# Deployment
+# Deployment docs (kit-instalare kept, rest excluded)
 deployment/
+
+# Migration seeds with sensitive data
+server/migrations/002_seed_users.sql
 
 .env
